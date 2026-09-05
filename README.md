@@ -1,6 +1,6 @@
 # 📞 BusyDail: Elite AI Sales & Telecalling Architecture
 
-![BusyDail Hero Image](./frontend/bdlogo.png)
+
 
 > **BusyDail** is an emotionally intelligent, omni-channel automated telecalling ecosystem. It replaces rigid, robotic voice bots with adaptive AI personas that mirror human emotion, dynamically shift acoustic environments, and automate post-call SMS follow-ups in real time.
 
