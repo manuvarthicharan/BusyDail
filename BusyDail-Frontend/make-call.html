@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make a Call — BusyDail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+        .animate-pulse-slow { animation: pulse-slow 8s ease-in-out infinite; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+    </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen relative overflow-x-hidden font-sans flex">
+
+    <div class="fixed top-[-10%] left-[20%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse-slow pointer-events-none z-0"></div>
+    <div class="fixed bottom-[-10%] right-[-5%] w-[30%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse-slow pointer-events-none z-0" style="animation-delay: 2s;"></div>
+
+    <div class="md:hidden fixed top-0 left-0 w-full bg-gray-900/80 backdrop-blur-xl border-b border-white/10 p-4 flex items-center justify-between z-40 shadow-lg">
+        <a href="index.html" class="flex items-center gap-2">
+            <img src="bdlogo.png" alt="BusyDail Icon" class="h-8 w-auto">
+        </a>
+        <button id="mobileMenuBtn" class="text-white hover:text-blue-400 focus:outline-none transition">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+    </div>
+
+    <div id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-gray-900/90 backdrop-blur-2xl border-r border-white/10 flex flex-col z-50 transition-transform duration-300 transform -translate-x-full md:translate-x-0 shadow-[20px_0_50px_rgba(0,0,0,0.3)] md:shadow-none">
+        
+        <button id="closeMenuBtn" class="md:hidden absolute top-5 right-5 text-gray-400 hover:text-white transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+
+        <div class="p-6 pt-8 md:pt-6 border-b border-white/10 flex flex-col">
+            <a href="index.html" class="flex items-center gap-3 group mb-1">
+                <img src="bdlogo.png" alt="BusyDail Icon" class="h-8 w-auto transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                <img src="bdtext.png" alt="BusyDail" class="h-5 w-auto opacity-90 group-hover:opacity-100 transition-opacity">
+            </a>
+            <div id="userEmail" class="text-xs text-blue-400 mt-2 truncate bg-blue-500/10 px-2 py-1 rounded-md inline-block max-w-fit border border-blue-500/20"></div>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
+            <a href="dashboard.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📊 Dashboard</a>
+            <a href="agents.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">🤖 Agents</a>
+            <a href="groups.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">👥 Agent Groups</a>
+            <a href="campaigns.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📢 Campaigns</a>
+            <a href="contacts.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">👥 Contacts</a>
+            <a href="calls.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📞 Call History</a>
+            <a href="make-call.html" class="block px-4 py-3 rounded-xl text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium shadow-[0_0_15px_rgba(37,99,235,0.3)]">📲 Make a Call</a>
+            <a href="billing.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">💳 Billing</a>
+            <a href="settings.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">⚙️ Settings</a>
+        </nav>
+
+        <div class="p-5 border-t border-white/10 bg-black/20">
+            <button id="logoutBtn" class="w-full py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-xl transition-all font-medium">Logout</button>
+        </div>
+    </div>
+
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
+
+    <div class="md:ml-64 p-5 sm:p-8 pt-24 md:pt-8 flex-1 relative z-10 w-full min-h-screen">
+        <div class="mb-8 md:mb-10 max-w-3xl">
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Make a Call</h1>
+            <p class="text-gray-400 mt-2 text-sm sm:text-base">Launch targeted AI calls manually or select a campaign flow.</p>
+        </div>
+
+        <div class="max-w-3xl">
+            <div id="callStatus" class="hidden mb-6 p-4 rounded-xl text-sm font-medium backdrop-blur-md"></div>
+
+            <div class="bg-gray-900/50 backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-8 mb-6 shadow-xl relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-8 opacity-5 text-8xl transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500">🤖</div>
+                <h2 class="font-bold text-lg mb-5 flex items-center gap-2 relative z-10">Select AI Agent or Team</h2>
+                
+                <div id="noAgentWarning" class="hidden mb-4 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-yellow-400 text-sm relative z-10">
+                    No agents found. <a href="agents.html" class="underline font-semibold">Create an agent first</a>.
+                </div>
+                
+                <div class="relative z-10">
+                    <select id="agentSelect" class="w-full px-4 py-3.5 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all appearance-none cursor-pointer">
+                        <option value="" class="bg-gray-900">Loading configurations...</option>
+                        <optgroup label="Single Agents (Standard Persona)" id="singleAgentsOptGroup" class="bg-gray-950 text-blue-400 font-semibold"></optgroup>
+                        <optgroup label="Agent Teams (Multi-Agent Groups)" id="agentGroupsOptGroup" class="bg-gray-950 text-purple-400 font-semibold"></optgroup>
+                    </select>
+                </div>
+
+                <div id="agentPreview" class="hidden mt-4 p-5 bg-black/30 border border-white/5 rounded-2xl relative z-10 shadow-inner">
+                    <div class="flex items-center gap-3 mb-2.5">
+                        <span class="text-sm font-bold text-blue-400" id="previewName"></span>
+                        <span class="text-xs text-gray-300 bg-white/5 px-2.5 py-1 rounded-md border border-white/5" id="previewVoice"></span>
+                    </div>
+                    <p class="text-sm text-gray-400 line-clamp-2 leading-relaxed" id="previewPrompt"></p>
+                </div>
+            </div>
+
+            <div class="bg-gray-900/50 backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-8 mb-6 shadow-xl">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="font-bold text-lg">Call Constraints</h2>
+                        <p class="text-xs text-gray-500 mt-0.5">Define runtime restrictions before starting conversations</p>
+                    </div>
+                    <span id="durationLabel" class="text-sm font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-3 py-1 rounded-xl">2 mins (120s)</span>
+                </div>
+                <input type="range" id="maxCallDuration" min="30" max="600" step="30" value="120"
+                    class="w-full h-2 bg-gray-800 rounded-full appearance-none cursor-pointer accent-purple-500">
+                <div class="flex justify-between text-[10px] text-gray-500 mt-2 px-1">
+                    <span>30 seconds</span>
+                    <span>5 minutes</span>
+                    <span>10 minutes</span>
+                </div>
+            </div>
+
+            <div class="bg-gray-900/50 backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-8 shadow-xl">
+                <h2 class="font-bold text-lg mb-6">Call Target Details</h2>
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1.5 ml-1">Phone Number *</label>
+                        <input id="phoneNumber" type="text" placeholder="+919876543210"
+                            class="w-full px-4 py-3.5 bg-black/20 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-all text-base tracking-wide" />
+                    </div>
+                    
+                    <div class="flex items-center justify-center py-2">
+                        <div class="h-px bg-white/10 w-full"></div>
+                        <span class="px-4 text-xs text-gray-500 uppercase font-semibold">OR</span>
+                        <div class="h-px bg-white/10 w-full"></div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1.5 ml-1">Select Contact or Campaign</label>
+                        <div class="relative">
+                            <select id="contactSelect" class="w-full px-4 py-3.5 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500 appearance-none cursor-pointer">
+                                <option value="" class="bg-gray-900">Loading targets...</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button id="callBtn" class="w-full mt-4 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.3)] rounded-xl font-bold text-lg transition-all duration-300">
+                        📞 Start AI Call
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase, getUser, getBusiness } from './supabase.js';
+
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const closeMenuBtn = document.getElementById('closeMenuBtn');
+        const toggleSidebar = () => { sidebar.classList.toggle('-translate-x-full'); overlay.classList.toggle('hidden'); };
+        if(mobileMenuBtn) mobileMenuBtn.addEventListener('click', toggleSidebar);
+        if(closeMenuBtn) closeMenuBtn.addEventListener('click', toggleSidebar);
+        overlay?.addEventListener('click', toggleSidebar);
+
+        const SERVER_URL = 'https://ai-telecaller-f47c.onrender.com';
+
+        const user = await getUser();
+        if (!user) { window.location.href = 'login.html'; }
+
+        const business = await getBusiness(user.email);
+        if (!business) { window.location.href = 'onboarding.html'; }
+
+        document.getElementById('userEmail').textContent = user.email;
+
+        const durationSlider = document.getElementById('maxCallDuration');
+        const durationLabel = document.getElementById('durationLabel');
+        durationSlider.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value, 10);
+            durationLabel.textContent = val >= 60 ? `${Math.floor(val/60)}m ${val%60}s (${val}s)` : `${val} seconds`;
+        });
+
+        let agents = [];
+        let groups = [];
+        
+        // Fetch Agents and Groups concurrently
+        const [agentsRes, groupsRes] = await Promise.all([
+            supabase.from('agents').select('*').eq('business_id', business.id).order('is_default', { ascending: false }),
+            supabase.from('ai_groups').select('*').eq('business_id', business.id)
+        ]);
+
+        agents = agentsRes.data || [];
+        groups = groupsRes.data || [];
+
+        const agentSelect = document.getElementById('agentSelect');
+        const singleGroup = document.getElementById('singleAgentsOptGroup');
+        const teamGroup = document.getElementById('agentGroupsOptGroup');
+
+        if (agents.length === 0 && groups.length === 0) {
+            document.getElementById('noAgentWarning').classList.remove('hidden');
+            agentSelect.innerHTML = '<option value="" class="bg-gray-900">-- Use default system agent --</option>';
+        } else {
+            agentSelect.innerHTML = '<option value="" class="bg-gray-900">-- Select an agent or team --</option>';
+            agentSelect.appendChild(singleGroup);
+            agentSelect.appendChild(teamGroup);
+
+            if (agents.length > 0) {
+                agents.forEach(a => {
+                    const opt = document.createElement('option');
+                    opt.value = `agent_${a.id}`;
+                    opt.textContent = `${a.name} (${a.voice})`;
+                    opt.className = "bg-gray-900 text-white font-normal";
+                    if(a.is_default) opt.selected = true;
+                    singleGroup.appendChild(opt);
+                });
+            } else {
+                singleGroup.innerHTML = '<option disabled class="bg-gray-950 text-gray-600">No standalone agents found</option>';
+            }
+
+            if (groups.length > 0) {
+                groups.forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = `group_${g.id}`;
+                    opt.textContent = g.name;
+                    opt.className = "bg-gray-900 text-white font-normal";
+                    teamGroup.appendChild(opt);
+                });
+            } else {
+                teamGroup.innerHTML = '<option disabled class="bg-gray-950 text-gray-600">No multi-agent teams found</option>';
+            }
+        }
+
+        agentSelect.addEventListener('change', () => {
+            const val = agentSelect.value;
+            if (!val) {
+                document.getElementById('agentPreview').classList.add('hidden');
+                return;
+            }
+
+            if (val.startsWith('agent_')) {
+                const id = val.replace('agent_', '');
+                const agent = agents.find(a => a.id === id);
+                if (agent) {
+                    document.getElementById('previewName').textContent = agent.name;
+                    document.getElementById('previewVoice').textContent = `🎙️ ${agent.voice}`;
+                    document.getElementById('previewPrompt').textContent = agent.prompt;
+                    document.getElementById('agentPreview').classList.remove('hidden');
+                }
+            } else if (val.startsWith('group_')) {
+                const id = val.replace('group_', '');
+                const group = groups.find(g => g.id === id);
+                if (group) {
+                    document.getElementById('previewName').textContent = `Team: ${group.name}`;
+                    document.getElementById('previewVoice').textContent = `👥 Multi-Agent`;
+                    document.getElementById('previewPrompt').textContent = `Routing Rules: ${group.routing_conditions}`;
+                    document.getElementById('agentPreview').classList.remove('hidden');
+                }
+            }
+        });
+
+        if (agents.length > 0 || groups.length > 0) agentSelect.dispatchEvent(new Event('change'));
+
+        // Fetch Contacts and Campaigns concurrently
+        const [contactsRes, campaignsRes] = await Promise.all([
+            supabase.from('contacts').select('*').eq('business_id', business.id).order('name'),
+            supabase.from('campaigns').select('id, name').eq('business_id', business.id)
+        ]);
+
+        const contactSelect = document.getElementById('contactSelect');
+        contactSelect.innerHTML = '<option value="" class="bg-gray-900">-- Select a single target contact or campaign flow --</option>';
+
+        // Inject Individual Contacts
+        if (contactsRes.data && contactsRes.data.length > 0) {
+            const contactsOptGroup = document.createElement('optgroup');
+            contactsOptGroup.label = "Individual Contacts Directory";
+            contactsOptGroup.className = "bg-gray-950 text-blue-400 font-semibold";
+            
+            contactsRes.data.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = JSON.stringify({ phone: c.phone, id: c.id, type: 'contact' });
+                opt.className = "bg-gray-900 text-white font-normal";
+                opt.textContent = `👤 ${c.name} — ${c.phone}`;
+                contactsOptGroup.appendChild(opt);
+            });
+            contactSelect.appendChild(contactsOptGroup);
+        }
+
+        // Inject Campaign Targets
+        if (campaignsRes.data && campaignsRes.data.length > 0) {
+            const campaignsOptGroup = document.createElement('optgroup');
+            campaignsOptGroup.label = "Assembled Campaign Outbound Targets";
+            campaignsOptGroup.className = "bg-gray-950 text-purple-400 font-semibold";
+            
+            campaignsRes.data.forEach(camp => {
+                const opt = document.createElement('option');
+                opt.value = JSON.stringify({ id: camp.id, type: 'campaign' });
+                opt.className = "bg-gray-900 text-white font-normal";
+                opt.textContent = `📋 Campaign: ${camp.name}`;
+                campaignsOptGroup.appendChild(opt);
+            });
+            contactSelect.appendChild(campaignsOptGroup);
+        }
+
+        contactSelect.addEventListener('change', (e) => {
+            if (!e.target.value) return;
+            const selection = JSON.parse(e.target.value);
+            
+            if (selection.type === 'contact') {
+                document.getElementById('phoneNumber').value = selection.phone;
+                document.getElementById('phoneNumber').disabled = false;
+            } else if (selection.type === 'campaign') {
+                document.getElementById('phoneNumber').value = "";
+                document.getElementById('phoneNumber').placeholder = "Enter target number for campaign...";
+                document.getElementById('phoneNumber').disabled = false;
+            }
+        });
+
+        const showStatus = (msg, type = 'success') => {
+            const el = document.getElementById('callStatus');
+            el.innerHTML = type === 'success' ? `✅ ${msg}` : `⚠️ ${msg}`;
+            el.className = `mb-6 p-4 rounded-2xl text-sm font-medium border backdrop-blur-md ${type === 'success' ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`;
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 6000);
+        };
+
+        document.getElementById('callBtn').addEventListener('click', async () => {
+            const phone = document.getElementById('phoneNumber').value.trim();
+            const btn = document.getElementById('callBtn');
+            const selectedTarget = agentSelect.value;
+            
+            if (!phone) { showStatus('Please enter a phone number.', 'error'); return; }
+            if (!selectedTarget) { showStatus('Please select a target persona or team.', 'error'); return; }
+            
+            // Extract IDs from dropdown JSON
+            const contactVal = document.getElementById('contactSelect').value;
+            const contactParsed = contactVal ? JSON.parse(contactVal) : null;
+            const contactId = contactParsed && contactParsed.type === 'contact' ? contactParsed.id : null;
+            const campaignId = contactParsed && contactParsed.type === 'campaign' ? contactParsed.id : null;
+
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Initiating...';
+            
+            const requestBody = {
+                to: phone,
+                businessId: business.id,
+                contactId: contactId,
+                campaignId: campaignId, // Now correctly passing the ID!
+                maxDuration: durationSlider.value
+            };
+
+            if (selectedTarget.startsWith('group_')) {
+                requestBody.groupId = selectedTarget.replace('group_', '');
+            } else if (selectedTarget.startsWith('agent_')) {
+                requestBody.agentId = selectedTarget.replace('agent_', '');
+            }
+
+            try {
+                const response = await fetch(`${SERVER_URL}/make-call`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                if (response.status === 402) {
+                    showStatus('Insufficient credits. Please top up your balance.', 'error');
+                } else if (data.success) {
+                    showStatus('Call initiated successfully!');
+                } else {
+                    showStatus(`Failed: ${data.error}`, 'error');
+                }
+            } catch (err) {
+                showStatus(`Error: ${err.message}`, 'error');
+            }
+            btn.disabled = false;
+            btn.innerHTML = '📞 Start AI Call';
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.href = 'login.html';
+        });
+
+        init();
+    </script>
+</body>
+</html>

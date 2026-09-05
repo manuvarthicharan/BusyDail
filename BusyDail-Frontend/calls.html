@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Call History — BusyDail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+        .animate-pulse-slow { animation: pulse-slow 8s ease-in-out infinite; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+    </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen relative overflow-x-hidden font-sans flex">
+
+    <div class="fixed top-[-10%] left-[20%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse-slow pointer-events-none z-0"></div>
+    <div class="fixed bottom-[-10%] right-[-5%] w-[30%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse-slow pointer-events-none z-0" style="animation-delay: 2s;"></div>
+
+    <div class="md:hidden fixed top-0 left-0 w-full bg-gray-900/80 backdrop-blur-xl border-b border-white/10 p-4 flex items-center justify-between z-40 shadow-lg">
+        <a href="index.html" class="flex items-center gap-2">
+            <img src="bdlogo.png" alt="BusyDail Icon" class="h-8 w-auto">
+        </a>
+        <button id="mobileMenuBtn" class="text-white hover:text-blue-400 focus:outline-none transition">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+    </div>
+
+    <div id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-gray-900/90 backdrop-blur-2xl border-r border-white/10 flex flex-col z-50 transition-transform duration-300 transform -translate-x-full md:translate-x-0 shadow-[20px_0_50px_rgba(0,0,0,0.3)] md:shadow-none">
+        <button id="closeMenuBtn" class="md:hidden absolute top-5 right-5 text-gray-400 hover:text-white transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <div class="p-6 pt-8 md:pt-6 border-b border-white/10 flex flex-col">
+            <a href="index.html" class="flex items-center gap-3 group mb-1">
+                <img src="bdlogo.png" alt="BusyDail Icon" class="h-8 w-auto transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                <img src="bdtext.png" alt="BusyDail" class="h-5 w-auto opacity-90 group-hover:opacity-100 transition-opacity">
+            </a>
+            <div id="userEmail" class="text-xs text-blue-400 mt-2 truncate bg-blue-500/10 px-2 py-1 rounded-md inline-block max-w-fit border border-blue-500/20"></div>
+        </div>
+        <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
+            <a href="dashboard.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📊 Dashboard</a>
+            <a href="agents.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">🤖 Agents</a>
+            <a href="groups.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">👥 Agent Groups</a>
+            <a href="campaigns.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📢 Campaigns</a>
+            <a href="contacts.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">👥 Contacts</a>
+            <a href="calls.html" class="block px-4 py-3 rounded-xl text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium shadow-[0_0_15px_rgba(37,99,235,0.3)]">📞 Call History</a>
+            <a href="make-call.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📲 Make a Call</a>
+            <a href="billing.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">💳 Billing</a>
+            <a href="settings.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">⚙️ Settings</a>
+        </nav>
+        <div class="p-5 border-t border-white/10 bg-black/20">
+            <button id="logoutBtn" class="w-full py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-xl transition-all font-medium">Logout</button>
+        </div>
+    </div>
+
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
+
+    <div class="md:ml-64 p-5 sm:p-8 pt-24 md:pt-8 flex-1 relative z-10 w-full min-h-screen">
+        <div class="mb-8 md:mb-10">
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Call History</h1>
+            <p class="text-gray-400 mt-2 text-sm sm:text-base">Review transcripts, credit usage, and AI summaries of all your campaigns.</p>
+        </div>
+
+        <div class="bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-8 shadow-2xl">
+            <div id="callsList" class="space-y-4">
+                <div class="text-center py-12 text-gray-500">
+                    <div class="text-4xl mb-4 animate-pulse">⏳</div>
+                    <div class="font-medium">Loading call history...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="summaryModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-[60]">
+        <div class="bg-gray-800 border border-white/10 rounded-2xl p-8 w-full max-w-lg mx-4">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold">🤖 AI Call Summary</h2>
+                <button id="closeSummary" class="text-gray-400 hover:text-white text-2xl">✕</button>
+            </div>
+            <div class="p-4 bg-purple-500/10 border border-purple-500/20 rounded-xl">
+                <div id="summaryContent" class="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed"></div>
+            </div>
+            <button id="viewTranscriptFromSummary" class="mt-4 w-full py-3 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 rounded-xl text-sm transition">
+                📝 View Full Transcript
+            </button>
+        </div>
+    </div>
+
+    <div id="transcriptModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-[60]">
+        <div class="bg-gray-800 border border-white/10 rounded-2xl p-8 w-full max-w-2xl mx-4 max-h-[80vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold">Call Transcript</h2>
+                <button id="closeTranscript" class="text-gray-400 hover:text-white text-2xl">✕</button>
+            </div>
+            <div class="mb-4">
+                <h3 class="text-sm font-semibold text-green-400 mb-2">💬 Caller Said:</h3>
+                <div id="callerTranscript" class="p-4 bg-gray-700/50 rounded-xl text-sm text-gray-300 whitespace-pre-wrap"></div>
+            </div>
+            <div>
+                <h3 class="text-sm font-semibold text-purple-400 mb-2">🤖 AI Said:</h3>
+                <div id="geminiTranscript" class="p-4 bg-gray-700/50 rounded-xl text-sm text-gray-300 whitespace-pre-wrap"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase, getUser, getBusiness } from './supabase.js';
+
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const closeMenuBtn = document.getElementById('closeMenuBtn');
+        function toggleSidebar() { sidebar.classList.toggle('-translate-x-full'); overlay.classList.toggle('hidden'); }
+        if(mobileMenuBtn) mobileMenuBtn.addEventListener('click', toggleSidebar);
+        if(closeMenuBtn) closeMenuBtn.addEventListener('click', toggleSidebar);
+        if(overlay) overlay.addEventListener('click', toggleSidebar);
+
+        const user = await getUser();
+        if (!user) { window.location.href = 'login.html'; }
+
+        const business = await getBusiness(user.email);
+        if (!business) { window.location.href = 'onboarding.html'; }
+
+        document.getElementById('userEmail').textContent = user.email;
+
+        // Fetch User's Universal Timezone
+        const userTimezone = business.timezone || 'Asia/Kolkata';
+
+        let allCalls = [];
+
+        async function loadCalls() {
+            const { data: calls } = await supabase
+                .from('calls')
+                .select('*')
+                .eq('business_id', business.id)
+                .order('started_at', { ascending: false });
+
+            allCalls = calls || [];
+            const list = document.getElementById('callsList');
+            
+            if (allCalls.length === 0) {
+                list.innerHTML = `<div class="text-center py-12 text-gray-500">No calls found.</div>`;
+                return;
+            }
+
+            list.innerHTML = allCalls.map(call => {
+                let displayDate = "Unknown Date";
+                if (call.started_at) {
+                    try {
+                        // FIX: Safely enforce UTC parsing if the database stripped the 'Z'
+                        let safeDateStr = call.started_at.replace(' ', 'T');
+                        if (!safeDateStr.endsWith('Z') && !safeDateStr.includes('+')) {
+                            safeDateStr += 'Z'; // Force JS to parse it as UTC, not local
+                        }
+
+                        displayDate = new Date(safeDateStr).toLocaleString('en-US', { 
+                            year: 'numeric', month: 'short', day: 'numeric', 
+                            hour: '2-digit', minute: '2-digit', timeZoneName: 'short',
+                            timeZone: userTimezone // Safely applies your global UI setting
+                        });
+                    } catch(e) {
+                        displayDate = new Date(call.started_at).toLocaleString();
+                    }
+                }
+
+                return `
+                <div class="flex flex-col md:flex-row md:items-center justify-between p-5 bg-black/20 hover:bg-white/5 border border-white/5 rounded-2xl gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="h-12 w-12 rounded-full bg-gray-800 flex items-center justify-center text-xl border border-white/5">${call.direction === 'outbound' ? '📲' : '📞'}</div>
+                        <div>
+                            <div class="font-semibold capitalize">${call.direction} Call</div>
+                            <div class="text-sm text-gray-400 mt-1">${displayDate}</div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col md:flex-row items-start md:items-center gap-4">
+                        <div class="text-left md:text-right flex flex-col items-start md:items-end">
+                            <span class="text-xs font-semibold px-2.5 py-1 rounded-full ${call.status === 'completed' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}">${call.status}</span>
+                            <div class="text-xs text-gray-500 font-medium mt-2">⏱️ ${call.duration_seconds || 0} seconds</div>
+                            <div class="text-xs text-orange-400 font-medium mt-1">🪙 ${call.credits_used || 0} credits used</div>
+                        </div>
+                        <div class="flex gap-2">
+                            ${call.summary ? `
+                                <button onclick="showSummary('${call.id}')" class="px-4 py-2 bg-purple-600/20 hover:bg-purple-600/40 text-purple-400 rounded-xl text-sm transition">
+                                    🤖 Summary
+                                </button>` : ''}
+                            ${call.caller_transcript || call.gemini_transcript ? `
+                                <button onclick="showTranscript('${call.id}')" class="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 rounded-xl text-sm transition">
+                                    📝 Transcript
+                                </button>` : `<span class="px-4 py-2 text-gray-600 text-sm">No transcript</span>`}
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        window.showSummary = (callId) => {
+            const call = allCalls.find(c => c.id === callId);
+            if (!call) return;
+            document.getElementById('summaryContent').textContent = call.summary || 'No summary available';
+            document.getElementById('viewTranscriptFromSummary').onclick = () => {
+                document.getElementById('summaryModal').classList.add('hidden');
+                showTranscript(callId);
+            };
+            document.getElementById('summaryModal').classList.remove('hidden');
+        };
+
+        window.showTranscript = (callId) => {
+            const call = allCalls.find(c => c.id === callId);
+            if (!call) return;
+            document.getElementById('callerTranscript').textContent = call.caller_transcript || 'No transcript available';
+            document.getElementById('geminiTranscript').textContent = call.gemini_transcript || 'No transcript available';
+            document.getElementById('transcriptModal').classList.remove('hidden');
+        };
+
+        document.getElementById('closeSummary').addEventListener('click', () => document.getElementById('summaryModal').classList.add('hidden'));
+        document.getElementById('closeTranscript').addEventListener('click', () => document.getElementById('transcriptModal').classList.add('hidden'));
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.href = 'login.html';
+        });
+
+        loadCalls();
+    </script>
+</body>
+</html>

@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaign Manager — BusyDail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+        .animate-pulse-slow { animation: pulse-slow 8s ease-in-out infinite; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+    </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen relative overflow-x-hidden font-sans flex">
+
+    <div class="fixed top-[-10%] left-[20%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse-slow pointer-events-none z-0"></div>
+    <div class="fixed bottom-[-10%] right-[-5%] w-[30%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse-slow pointer-events-none z-0" style="animation-delay: 2s;"></div>
+
+    <div class="md:hidden fixed top-0 left-0 w-full bg-gray-900/80 backdrop-blur-xl border-b border-white/10 p-4 flex items-center justify-between z-40 shadow-lg">
+        <a href="index.html" class="flex items-center gap-2"><img src="bdlogo.png" alt="BusyDail Icon" class="h-8 w-auto"></a>
+        <button id="mobileMenuBtn" class="text-white hover:text-blue-400 focus:outline-none transition">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+    </div>
+
+    <!-- Sidebar Layout Navigation -->
+    <div id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-gray-900/90 backdrop-blur-2xl border-r border-white/10 flex flex-col z-50 transition-transform duration-300 transform -translate-x-full md:translate-x-0 shadow-[20px_0_50px_rgba(0,0,0,0.3)] md:shadow-none">
+        <button id="closeMenuBtn" class="md:hidden absolute top-5 right-5 text-gray-400 hover:text-white transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+
+        <div class="p-6 pt-8 md:pt-6 border-b border-white/10 flex flex-col">
+            <a href="index.html" class="flex items-center gap-3 group mb-1">
+                <img src="bdlogo.png" alt="BusyDail Icon" class="h-8 w-auto transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                <img src="bdtext.png" alt="BusyDail" class="h-5 w-auto opacity-90 group-hover:opacity-100 transition-opacity">
+            </a>
+            <div id="userEmail" class="text-xs text-blue-400 mt-2 truncate bg-blue-500/10 px-2 py-1 rounded-md inline-block max-w-fit border border-blue-500/20"></div>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
+            <a href="dashboard.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📊 Dashboard</a>
+            <a href="agents.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">🤖 Agents</a>
+            <a href="groups.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">👥 Agent Groups</a>
+            <a href="campaigns.html" class="block px-4 py-3 rounded-xl text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium shadow-[0_0_15px_rgba(37,99,235,0.3)]">📢 Campaigns</a>
+            <a href="contacts.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">👥 Contacts</a>
+            <a href="calls.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📞 Call History</a>
+            <a href="make-call.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📲 Make a Call</a>
+            <a href="billing.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">💳 Billing</a>
+            <a href="settings.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">⚙️ Settings</a>
+        </nav>
+
+        <div class="p-5 border-t border-white/10 bg-black/20">
+            <button id="logoutBtn" class="w-full py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-xl transition-all font-medium">Logout</button>
+        </div>
+    </div>
+
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
+
+    <!-- Main Workspace Container Content -->
+    <div class="md:ml-64 p-5 sm:p-8 pt-24 md:pt-8 flex-1 max-w-5xl mx-auto relative z-10 w-full min-h-screen">
+        <div class="flex justify-between items-center mb-8 border-b border-white/5 pb-6">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Campaign Manager</h1>
+                <p class="text-gray-400 text-sm mt-1">Execute Primary Dialing Campaigns and Manual Retries seamlessly.</p>
+            </div>
+            <button onclick="openCreateModal()" class="px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 rounded-xl font-bold text-sm shadow-lg transition">
+                + Create Campaign
+            </button>
+        </div>
+
+        <div id="dialerProgressBlock" class="hidden mb-8 bg-blue-900/20 border border-blue-500/30 p-5 rounded-2xl relative">
+            <h3 class="font-bold text-blue-400 mb-2">🚀 Active Campaign Dialer Running</h3>
+            <p id="dialerStatusText" class="text-sm text-gray-300 mb-4">Dialing 0 of 0 numbers...</p>
+            <div class="w-full bg-gray-800 rounded-full h-2.5">
+                <div id="dialerProgressBar" class="bg-blue-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <p class="text-xs text-yellow-400 mt-4">⚠️ Keep this tab open. Do not refresh until fully complete.</p>
+        </div>
+
+        <!-- SECTION 1: Primary Campaigns -->
+        <h2 class="font-bold text-xl mb-4 text-white flex items-center gap-2">📢 Primary Campaigns</h2>
+        <div id="primaryCampaignsContainer" class="space-y-4 pb-8">
+            <div class="text-sm text-gray-500 py-8 text-center bg-gray-900/10 border border-white/5 rounded-2xl">Loading primary campaigns...</div>
+        </div>
+
+        <!-- SECTION 2: Retry Campaigns -->
+        <h2 class="font-bold text-xl mb-4 mt-8 text-orange-400 flex items-center gap-2">♻️ Manual Retry Campaigns</h2>
+        <div id="retryCampaignsContainer" class="space-y-4 pb-12">
+            <div class="text-sm text-gray-500 py-8 text-center bg-gray-900/10 border border-white/5 rounded-2xl">Loading retry campaigns...</div>
+        </div>
+    </div>
+
+    <!-- Simplified Configuration Modal -->
+    <div id="campaignModal" class="fixed inset-0 bg-black/80 backdrop-blur-md items-center justify-center hidden z-50 p-4">
+        <div class="bg-gray-900 border border-white/10 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl relative">
+            <button onclick="toggleModal(false)" class="absolute top-6 right-6 text-gray-400 hover:text-white transition text-2xl">✕</button>
+            <h2 id="modalTitle" class="text-xl font-bold mb-6">Configure Outbound Campaign</h2>
+            
+            <form id="campaignForm" class="space-y-6">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Campaign Identifier Name</label>
+                        <input type="text" id="campName" required placeholder="e.g., January Product Launch" class="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500" />
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Call Handler Identity</label>
+                            <select id="campTargetSelector" required class="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500 cursor-pointer">
+                                <option value="" disabled selected>Select Caller Profile...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Max Call Duration (Secs)</label>
+                            <input type="number" id="campMaxDuration" required min="30" max="3600" value="120" class="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500" />
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-white/5" />
+
+                <!-- Contact Data Sourcing -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Lead Entry Sourcing</label>
+                        <div class="flex gap-4 p-1.5 bg-black/40 border border-white/10 rounded-xl w-fit text-sm">
+                            <button type="button" id="sourceManualBtn" onclick="switchSource('manual')" class="px-4 py-2 bg-blue-600 rounded-lg font-medium transition-all">✏️ Manual Input</button>
+                            <button type="button" id="sourceCsvBtn" onclick="switchSource('csv')" class="px-4 py-2 text-gray-400 hover:text-white font-medium transition-all">📋 Import CSV</button>
+                        </div>
+                    </div>
+
+                    <div id="manualInputContainer">
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Target Numbers (One Per Line - Any format)</label>
+                        <textarea id="manualNumbers" rows="4" placeholder="+19876543210&#10;9876543211" class="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500 font-mono"></textarea>
+                    </div>
+
+                    <div id="csvInputContainer" class="hidden">
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Select Target Database CSV File</label>
+                        <input type="file" id="csvFile" accept=".csv" class="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-sm text-white file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-800 file:text-white hover:file:bg-gray-700 cursor-pointer" />
+                    </div>
+                </div>
+
+                <button type="submit" id="saveCampaignBtn" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 rounded-xl font-bold text-sm shadow-xl transition shadow-blue-500/10">
+                    Save Campaign
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Campaign Analytics Modal -->
+    <div id="analyticsModal" class="fixed inset-0 bg-black/80 backdrop-blur-md items-center justify-center hidden z-50 p-4">
+        <div class="bg-gray-900 border border-white/10 rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col p-6 sm:p-8 shadow-2xl relative">
+            <button onclick="closeAnalytics()" class="absolute top-6 right-6 text-gray-400 hover:text-white transition text-2xl">✕</button>
+            <h2 id="analyticsTitle" class="text-xl font-bold mb-6">Campaign Analytics</h2>
+            
+            <div class="overflow-y-auto flex-1 bg-black/30 rounded-2xl border border-white/5">
+                <table class="w-full text-left border-collapse">
+                    <thead class="sticky top-0 bg-gray-900 z-10">
+                        <tr class="border-b border-white/10 text-xs uppercase tracking-wider text-gray-400">
+                            <th class="py-4 px-6 text-green-400 w-1/2">Successful Numbers</th>
+                            <th class="py-4 px-6 text-red-400 w-1/2">Failed / Rejected Numbers</th>
+                        </tr>
+                    </thead>
+                    <tbody id="analyticsTableBody" class="text-sm">
+                        <!-- Rows injected via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW UIA DASHBOARD MODAL -->
+    <div id="uiaModal" class="fixed inset-0 bg-black/80 backdrop-blur-md items-center justify-center hidden z-50 p-4">
+        <div class="bg-gray-900 border border-white/10 rounded-3xl w-full max-w-6xl max-h-[95vh] flex flex-col p-6 sm:p-8 shadow-2xl relative">
+            <button onclick="closeUIA()" class="absolute top-6 right-6 text-gray-400 hover:text-white transition text-2xl z-50">✕</button>
+            <h2 id="uiaTitle" class="text-2xl font-bold mb-2">User Interest Analytics (UIA)</h2>
+            <p class="text-sm text-gray-400 mb-6">AI-driven sentiment and intent evaluation based on call summaries.</p>
+
+            <div class="flex gap-4 mb-6">
+                <select id="uiaScopeSelector" class="w-full sm:w-1/2 px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500 cursor-pointer">
+                    <option value="all">Overall Campaign (All Calls)</option>
+                    <!-- Individual calls appended here -->
+                </select>
+            </div>
+            
+            <div class="overflow-y-auto flex-1 pr-2 space-y-6">
+                <!-- Dashboard Grid -->
+                <div id="uiaChartsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Pie Chart -->
+                    <div class="bg-black/30 p-5 rounded-2xl border border-white/5 flex flex-col items-center justify-center min-h-[300px]">
+                        <h3 class="text-sm font-bold text-gray-300 mb-4 w-full text-left">Interest Distribution</h3>
+                        <div class="w-full max-w-[250px] aspect-square relative flex items-center justify-center">
+                            <canvas id="uiaPieChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Bar Chart / Stats -->
+                    <div class="bg-black/30 p-5 rounded-2xl border border-white/5 flex flex-col items-center justify-center min-h-[300px]">
+                        <h3 class="text-sm font-bold text-gray-300 mb-4 w-full text-left">Volume Breakdown</h3>
+                        <div class="w-full h-full relative min-h-[200px] flex items-center justify-center">
+                            <canvas id="uiaBarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Call Summary Box (For single call view) -->
+                <div id="uiaSummaryBox" class="bg-black/30 p-5 rounded-2xl border border-white/5 hidden">
+                    <h3 class="text-sm font-bold text-gray-300 mb-2">AI Call Summary & Sentiment</h3>
+                    <p id="uiaSummaryText" class="text-sm text-gray-400 font-mono whitespace-pre-wrap leading-relaxed"></p>
+                </div>
+
+                <!-- Data Table List (For all calls view) -->
+                <div id="uiaNumbersBox" class="bg-black/30 p-5 rounded-2xl border border-white/5">
+                    <h3 class="text-sm font-bold text-gray-300 mb-4">Categorized Target Numbers</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4" id="uiaNumbersGrid">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase, getUser, getBusiness } from './supabase.js';
+
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const closeMenuBtn = document.getElementById('closeMenuBtn');
+        const toggleSidebar = () => { sidebar.classList.toggle('-translate-x-full'); overlay.classList.toggle('hidden'); };
+        if(mobileMenuBtn) mobileMenuBtn.addEventListener('click', toggleSidebar);
+        if(closeMenuBtn) closeMenuBtn.addEventListener('click', toggleSidebar);
+        overlay?.addEventListener('click', toggleSidebar);
+
+        const SERVER_URL = 'https://ai-telecaller-f47c.onrender.com';
+
+        let activeSource = 'manual';
+        let availableAgents = [];
+        let availableGroups = [];
+        let allCampaigns = [];
+        let business = null;
+        let editingCampaignId = null;
+
+        const cleanPhone = (num) => String(num || '').replace(/[^0-9]/g, '').slice(-10);
+        const delay = ms => new Promise(res => setTimeout(res, ms));
+
+        async function init() {
+            const user = await getUser();
+            if (!user) { window.location.href = 'login.html'; return; }
+            business = await getBusiness(user.email);
+            if (!business) { window.location.href = 'onboarding.html'; return; }
+            document.getElementById('userEmail').textContent = user.email;
+            
+            const [agentsRes, groupsRes] = await Promise.all([
+                supabase.from('agents').select('id, name').eq('business_id', business.id),
+                supabase.from('ai_groups').select('id, name').eq('business_id', business.id)
+            ]);
+            
+            availableAgents = agentsRes.data || [];
+            availableGroups = groupsRes.data || [];
+            
+            const targetSelect = document.getElementById('campTargetSelector');
+            availableAgents.forEach(a => targetSelect.innerHTML += `<option value="agent_${a.id}">🤖 ${a.name}</option>`);
+            availableGroups.forEach(g => targetSelect.innerHTML += `<option value="group_${g.id}">👥 Team: ${g.name}</option>`);
+            
+            await loadCampaignsDOM();
+        }
+
+        async function loadCampaignsDOM() {
+            const { data: campaigns } = await supabase.from('campaigns').select('*').eq('business_id', business.id).order('created_at', { ascending: false });
+            allCampaigns = campaigns || [];
+            
+            const pContainer = document.getElementById('primaryCampaignsContainer');
+            const rContainer = document.getElementById('retryCampaignsContainer');
+            
+            pContainer.innerHTML = '';
+            rContainer.innerHTML = '';
+
+            let primaryCount = 0;
+            let retryCount = 0;
+
+            allCampaigns.forEach(c => {
+                const poolSize = Array.isArray(c.numbers) ? c.numbers.length : 0;
+                const isRetry = c.name.startsWith('[RETRY]');
+                
+                let statusBadge = '';
+                if (c.status === 'completed') statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-green-500/10 text-green-400 border border-green-500/30">✅ Completed</span>`;
+                else if (c.status === 'running') statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-500/10 text-blue-400 border border-blue-500/30">🔄 Dialing</span>`;
+                else statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-gray-800 text-gray-400">⏸️ Ready</span>`;
+
+                const card = document.createElement('div');
+                card.id = `campaign-card-${c.id}`;
+                card.className = "p-5 bg-gray-900/40 border border-white/5 rounded-2xl flex flex-col gap-4 hover:border-white/10 transition";
+                
+                card.innerHTML = `
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <div class="flex items-center gap-3">
+                                <h3 class="font-bold text-base ${isRetry ? 'text-orange-400' : 'text-white'}">${c.name}</h3>
+                                <div id="status-badge-${c.id}">${statusBadge}</div>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1.5">Target Pool: ${poolSize} contacts</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            ${c.status !== 'running' ? `<button id="run-btn-${c.id}" onclick="runCampaignForeground('${c.id}')" class="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-xs font-bold rounded-xl shadow-lg transition">🚀 Run Campaign</button>` : ''}
+                            ${c.status === 'completed' ? `<button onclick="openAnalytics('${c.id}')" class="px-4 py-2 bg-purple-600/20 hover:bg-purple-600/40 text-purple-400 text-xs font-bold rounded-xl transition border border-purple-500/20">📊 Campaign Analytics</button>` : ''}
+                            ${c.status === 'completed' ? `<button onclick="openUIA('${c.id}')" class="px-4 py-2 bg-teal-600/20 hover:bg-teal-600/40 text-teal-400 text-xs font-bold rounded-xl transition border border-teal-500/20">📈 UIA Dashboard</button>` : ''}
+                            ${c.status === 'completed' && !isRetry ? `<button onclick="generateRetryCampaign('${c.id}')" class="px-4 py-2 bg-orange-600/20 hover:bg-orange-600/40 text-orange-400 text-xs font-bold rounded-xl transition border border-orange-500/20">♻️ Create Retry Batch</button>` : ''}
+                            <button onclick="editCampaign('${c.id}')" class="px-3.5 py-2 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 text-xs font-semibold rounded-xl transition">✏️</button>
+                            <button onclick="deleteCampaign('${c.id}')" class="px-3.5 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 text-xs font-semibold rounded-xl transition">🗑️</button>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-2 p-4 bg-black/30 rounded-xl border border-white/5">
+                        <div class="flex justify-between text-xs mb-2">
+                            <span class="text-gray-400 font-semibold uppercase tracking-wider">Final Call Progress</span>
+                            <span class="font-bold text-gray-300" id="stats-text-${c.id}">Loading stats...</span>
+                        </div>
+                        <div class="w-full bg-gray-800 rounded-full h-2">
+                            <div id="stats-bar-${c.id}" class="bg-blue-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                `;
+                
+                if (isRetry) {
+                    rContainer.appendChild(card);
+                    retryCount++;
+                } else {
+                    pContainer.appendChild(card);
+                    primaryCount++;
+                }
+            });
+
+            if (primaryCount === 0) pContainer.innerHTML = `<div class="text-sm text-gray-500 py-6 text-center">No primary campaigns yet.</div>`;
+            if (retryCount === 0) rContainer.innerHTML = `<div class="text-sm text-gray-500 py-6 text-center">No retry campaigns generated yet.</div>`;
+
+            await updateLiveUIStats();
+        }
+
+        // --- SYNCHRONOUS SEQUENTIAL FOREGROUND DIALER ENGINE ---
+        window.runCampaignForeground = async (campaignId) => {
+            const camp = allCampaigns.find(c => c.id === campaignId);
+            const numbersList = Array.isArray(camp.numbers) ? camp.numbers : [];
+            if (numbersList.length === 0) { alert("This campaign has no numbers."); return; }
+
+            const { data: history } = await supabase.from('calls').select('target_number').eq('campaign_id', campaignId);
+            const calledNumbers = (history || []).map(h => cleanPhone(h.target_number));
+            const pendingNumbers = numbersList.filter(n => !calledNumbers.includes(cleanPhone(n)));
+
+            if (pendingNumbers.length === 0) {
+                alert("All contacts in this list have already been triggered. Use 'Create Retry Batch' if needed.");
+                await supabase.from('campaigns').update({ status: 'completed' }).eq('id', campaignId);
+                loadCampaignsDOM();
+                return;
+            }
+
+            if (!confirm(`Launch cluster? This sequence runs synchronously over ${pendingNumbers.length} targets. Keep this tab open.`)) return;
+
+            await supabase.from('campaigns').update({ status: 'running' }).eq('id', campaignId);
+            loadCampaignsDOM();
+
+            const progressBlock = document.getElementById('dialerProgressBlock');
+            const statusText = document.getElementById('dialerStatusText');
+            const progressBar = document.getElementById('dialerProgressBar');
+            progressBlock.classList.remove('hidden');
+
+            for (let i = 0; i < pendingNumbers.length; i++) {
+                const targetNumber = pendingNumbers[i];
+                statusText.innerHTML = `Processing contact <strong>${i + 1} of ${pendingNumbers.length}</strong>... <br><span class="text-xs text-gray-400">Current Target: ${targetNumber}</span>`;
+                progressBar.style.width = `${((i + 1) / pendingNumbers.length) * 100}%`;
+
+                try {
+                    const response = await fetch(`${SERVER_URL}/make-call`, {
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            to: targetNumber, businessId: business.id, campaignId: camp.id, 
+                            agentId: camp.agent_id, groupId: camp.group_id, maxDuration: camp.max_duration || 120
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success && data.callSid) {
+                        let callResolved = false;
+                        let attemptsChecked = 0;
+                        
+                        while (!callResolved && attemptsChecked < 60) {
+                            await delay(1500); 
+                            attemptsChecked++;
+
+                            const { data: callTrack } = await supabase
+                                .from('calls')
+                                .select('status')
+                                .eq('twilio_call_sid', data.callSid)
+                                .limit(1);
+
+                            if (callTrack && callTrack.length > 0) {
+                                const currentStatus = callTrack[0].status;
+                                if (['completed', 'busy', 'no-answer', 'canceled', 'failed', 'rejected'].includes(currentStatus)) {
+                                    callResolved = true;
+                                }
+                            }
+                        }
+                    }
+                } catch (err) { console.error("API hit failure:", err); }
+                
+                await delay(1500);
+            }
+
+            // WAIT FOR ALL ACTIVE CALLS TO FULLY COMPLETE BEFORE MARKING CAMPAIGN AS DONE
+            statusText.innerHTML = `Dialing sequence finished. Awaiting final call resolutions... <br><span class="text-xs text-gray-400 animate-pulse">Syncing Database...</span>`;
+            
+            let allCallsResolved = false;
+            let resolutionCheckAttempts = 0;
+            
+            while (!allCallsResolved && resolutionCheckAttempts < 120) {
+                const { data: activeCalls } = await supabase
+                    .from('calls')
+                    .select('id')
+                    .eq('campaign_id', campaignId)
+                    .in('status', ['initiated', 'queued', 'ringing', 'in-progress']);
+                
+                if (!activeCalls || activeCalls.length === 0) {
+                    allCallsResolved = true;
+                } else {
+                    resolutionCheckAttempts++;
+                    await delay(2000);
+                }
+            }
+
+            statusText.innerHTML = `<span class="text-green-400 font-bold">Execution Block Finalized! Core pipeline complete.</span>`;
+            setTimeout(() => { progressBlock.classList.add('hidden'); }, 4000);
+
+            await supabase.from('campaigns').update({ status: 'completed' }).eq('id', campaignId);
+            loadCampaignsDOM();
+        };
+
+        // --- CAMPAIGN ANALYTICS TABLE MODAL ---
+        window.openAnalytics = async (campaignId) => {
+            const camp = allCampaigns.find(c => c.id === campaignId);
+            document.getElementById('analyticsTitle').textContent = `Analytics: ${camp.name}`;
+            
+            const tbody = document.getElementById('analyticsTableBody');
+            tbody.innerHTML = '<tr><td colspan="2" class="text-center py-10 text-gray-500 animate-pulse">Fetching records...</td></tr>';
+            document.getElementById('analyticsModal').style.display = 'flex';
+
+            const { data: calls } = await supabase.from('calls').select('target_number, status, duration_seconds').eq('campaign_id', campaignId);
+            
+            let successList = [];
+            let failedList = [];
+            
+            camp.numbers.forEach(num => {
+                const numHistory = (calls || []).filter(c => cleanPhone(c.target_number) === cleanPhone(num));
+                
+                // Strict rule: Must be 'completed' AND duration > 0 to be a Success
+                const hasSuccess = numHistory.some(c => c.status === 'completed' && c.duration_seconds > 0);
+                
+                if (hasSuccess) {
+                    successList.push(num);
+                } else {
+                    failedList.push(num);
+                }
+            });
+
+            tbody.innerHTML = '';
+            const maxRows = Math.max(successList.length, failedList.length);
+
+            if (maxRows === 0) {
+                tbody.innerHTML = '<tr><td colspan="2" class="text-center py-10 text-gray-500">No data available for this campaign.</td></tr>';
+                return;
+            }
+
+            for (let i = 0; i < maxRows; i++) {
+                const sNum = successList[i] || '-';
+                const fNum = failedList[i] || '-';
+                
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-white/5 hover:bg-white/5 transition';
+                tr.innerHTML = `
+                    <td class="py-3 px-6 text-green-300 font-mono tracking-widest">${sNum}</td>
+                    <td class="py-3 px-6 text-red-300 font-mono tracking-widest">${fNum}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+        };
+
+        window.closeAnalytics = () => {
+            document.getElementById('analyticsModal').style.display = 'none';
+        };
+
+        // --- NEW UIA DASHBOARD LOGIC ---
+        let uiaPieChartInstance = null;
+        let uiaBarChartInstance = null;
+        let currentUiaCalls = [];
+
+        window.openUIA = async (campaignId) => {
+            const camp = allCampaigns.find(c => c.id === campaignId);
+            document.getElementById('uiaTitle').textContent = `UIA Dashboard: ${camp.name}`;
+            document.getElementById('uiaModal').style.display = 'flex';
+
+            const { data: calls } = await supabase.from('calls').select('target_number, status, duration_seconds, summary').eq('campaign_id', campaignId);
+            currentUiaCalls = calls || [];
+
+            const selector = document.getElementById('uiaScopeSelector');
+            selector.innerHTML = '<option value="all">Overall Campaign (All Calls)</option>';
+            
+            // Only list calls that connected and theoretically got a summary
+            currentUiaCalls.filter(c => c.status === 'completed' && c.duration_seconds > 0).forEach(c => {
+                selector.innerHTML += `<option value="${c.target_number}">${c.target_number}</option>`;
+            });
+
+            selector.onchange = () => renderUIA(selector.value);
+            renderUIA('all');
+        };
+
+        window.closeUIA = () => {
+            document.getElementById('uiaModal').style.display = 'none';
+            if(uiaPieChartInstance) uiaPieChartInstance.destroy();
+            if(uiaBarChartInstance) uiaBarChartInstance.destroy();
+        };
+
+        function renderUIA(scope) {
+            let callsToAnalyze = scope === 'all' 
+                ? currentUiaCalls.filter(c => c.status === 'completed' && c.duration_seconds > 0)
+                : currentUiaCalls.filter(c => c.target_number === scope);
+
+            let interested = [], notInterested = [], likely = [];
+            let summaryText = "";
+
+            callsToAnalyze.forEach(c => {
+                const text = c.summary || '';
+                const num = c.target_number;
+                
+                // Parse AI Sentiment Tags matching the updated backend logic
+                const lowerText = text.toLowerCase();
+
+                if (lowerText.includes('[not interested]')) notInterested.push(num);
+                else if (lowerText.includes('[likelyinterested]')) likely.push(num);
+                else if (lowerText.includes('[interested]')) interested.push(num);
+
+                if (scope !== 'all') {
+                    // Strip out the tag to show a clean summary to the user
+                    summaryText = text.replace(/\[not interested\]|\[likelyinterested\]|\[interested\]|\[unknown\]/gi, '').trim();
+                }
+            });
+
+            const summaryBox = document.getElementById('uiaSummaryBox');
+            const chartsBox = document.getElementById('uiaChartsContainer');
+            const numbersBox = document.getElementById('uiaNumbersBox');
+            const numbersGrid = document.getElementById('uiaNumbersGrid');
+
+            if (scope !== 'all') {
+                summaryBox.classList.remove('hidden');
+                chartsBox.classList.add('hidden');
+                numbersBox.classList.add('hidden');
+                document.getElementById('uiaSummaryText').textContent = summaryText || "No AI summary available for this call.";
+            } else {
+                summaryBox.classList.add('hidden');
+                chartsBox.classList.remove('hidden');
+                numbersBox.classList.remove('hidden');
+                
+                // Build the Data Grids dynamically
+                numbersGrid.innerHTML = `
+                    <div class="bg-green-500/10 border border-green-500/20 p-4 rounded-xl flex flex-col max-h-[300px]">
+                        <h4 class="text-xs font-bold text-green-400 mb-3 uppercase tracking-wide border-b border-green-500/20 pb-2">Interested (${interested.length})</h4>
+                        <ul class="text-sm font-mono text-gray-300 space-y-1 overflow-y-auto flex-1 pr-2">
+                            ${interested.length > 0 ? interested.map(n => `<li>${n}</li>`).join('') : '<li class="text-gray-500 text-xs italic">None recorded</li>'}
+                        </ul>
+                    </div>
+                    <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl flex flex-col max-h-[300px]">
+                        <h4 class="text-xs font-bold text-blue-400 mb-3 uppercase tracking-wide border-b border-blue-500/20 pb-2">Likely Interested (${likely.length})</h4>
+                        <ul class="text-sm font-mono text-gray-300 space-y-1 overflow-y-auto flex-1 pr-2">
+                            ${likely.length > 0 ? likely.map(n => `<li>${n}</li>`).join('') : '<li class="text-gray-500 text-xs italic">None recorded</li>'}
+                        </ul>
+                    </div>
+                    <div class="bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex flex-col max-h-[300px]">
+                        <h4 class="text-xs font-bold text-red-400 mb-3 uppercase tracking-wide border-b border-red-500/20 pb-2">Not Interested (${notInterested.length})</h4>
+                        <ul class="text-sm font-mono text-gray-300 space-y-1 overflow-y-auto flex-1 pr-2">
+                            ${notInterested.length > 0 ? notInterested.map(n => `<li>${n}</li>`).join('') : '<li class="text-gray-500 text-xs italic">None recorded</li>'}
+                        </ul>
+                    </div>
+                `;
+
+                drawUIACharts([interested.length, likely.length, notInterested.length]);
+            }
+        }
+
+        function drawUIACharts(dataArray) {
+            const ctxPie = document.getElementById('uiaPieChart').getContext('2d');
+            const ctxBar = document.getElementById('uiaBarChart').getContext('2d');
+
+            if(uiaPieChartInstance) uiaPieChartInstance.destroy();
+            if(uiaBarChartInstance) uiaBarChartInstance.destroy();
+
+            Chart.defaults.color = '#9ca3af';
+
+            const labels = ['Interested', 'Likely Interested', 'Not Interested'];
+            const bgColors = ['#10b981', '#3b82f6', '#ef4444'];
+
+            uiaPieChartInstance = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataArray,
+                        backgroundColor: bgColors,
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#e5e7eb', padding: 20 } } }
+                }
+            });
+
+            uiaBarChartInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Call Volume',
+                        data: dataArray,
+                        backgroundColor: bgColors,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1, color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false }, ticks: { color: '#9ca3af' } }
+                    }
+                }
+            });
+        }
+
+        // --- RETRY CAMPAIGN GENERATOR ---
+        window.generateRetryCampaign = async (campaignId) => {
+            const camp = allCampaigns.find(c => c.id === campaignId);
+            const btn = event.target;
+            btn.textContent = 'Scanning...'; btn.disabled = true;
+
+            const { data: calls } = await supabase.from('calls').select('target_number, status, duration_seconds').eq('campaign_id', campaignId);
+            
+            let failedNumbers = [];
+            camp.numbers.forEach(num => {
+                const numHistory = (calls || []).filter(c => cleanPhone(c.target_number) === cleanPhone(num));
+                const hasSuccess = numHistory.some(c => c.status === 'completed' && c.duration_seconds > 0);
+                if (!hasSuccess) failedNumbers.push(num);
+            });
+
+            btn.textContent = '♻️ Create Retry Batch'; btn.disabled = false;
+
+            if (failedNumbers.length === 0) {
+                alert("Fantastic! Every single number in this campaign was successfully contacted. No retry needed.");
+                return;
+            }
+
+            editingCampaignId = null;
+            document.getElementById('modalTitle').textContent = "Generate Manual Retry Batch";
+            document.getElementById('saveCampaignBtn').textContent = "Save Retry Campaign";
+            document.getElementById('campaignForm').reset();
+            
+            document.getElementById('campName').value = `[RETRY] ${camp.name}`;
+            document.getElementById('campTargetSelector').value = camp.group_id ? `group_${camp.group_id}` : `agent_${camp.agent_id}`;
+            document.getElementById('campMaxDuration').value = camp.max_duration || 120;
+            
+            switchSource('manual');
+            document.getElementById('manualNumbers').value = failedNumbers.join('\n');
+            toggleModal(true);
+        };
+
+        // --- BINARY PROGRESS SYNCRONIZER ---
+        async function updateLiveUIStats() {
+            const { data: calls } = await supabase.from('calls').select('campaign_id, status, duration_seconds, target_number').eq('business_id', business.id);
+            if (!calls) return;
+
+            allCampaigns.forEach(camp => {
+                const numbers = Array.isArray(camp.numbers) ? camp.numbers : [];
+                if (numbers.length === 0) return;
+
+                const campCalls = calls.filter(c => c.campaign_id === camp.id);
+                
+                let successCount = 0;
+                let failedCount = 0; 
+
+                numbers.forEach(num => {
+                    const numCalls = campCalls.filter(c => cleanPhone(c.target_number) === cleanPhone(num));
+                    
+                    if (numCalls.length > 0) {
+                        const isSuccess = numCalls.some(c => c.status === 'completed' && c.duration_seconds > 0);
+                        
+                        if (isSuccess) {
+                            successCount++;
+                        } else {
+                            failedCount++;
+                        }
+                    }
+                });
+
+                let pendingCount = numbers.length - (successCount + failedCount);
+                if (pendingCount < 0) pendingCount = 0;
+
+                const uiText = document.getElementById(`stats-text-${camp.id}`);
+                const uiBar = document.getElementById(`stats-bar-${camp.id}`);
+                
+                if (uiText && uiBar) {
+                    uiText.innerHTML = `<span class="text-green-400">${successCount} Success</span> | <span class="text-red-400">${failedCount} Failed</span> | <span class="text-gray-400">${pendingCount} Pending</span>`;
+                    uiBar.style.width = `${((successCount + failedCount) / numbers.length) * 100}%`;
+                }
+            });
+        }
+
+        function parseCSV(text) {
+            const numbers = [];
+            text.split('\n').forEach(line => {
+                line.split(',').forEach(col => {
+                    const clean = col.trim(); if (clean.length >= 7) numbers.push(clean);
+                });
+            });
+            return [...new Set(numbers)];
+        }
+
+        window.openCreateModal = () => {
+            editingCampaignId = null; document.getElementById('modalTitle').textContent = "Configure New Primary Campaign";
+            document.getElementById('saveCampaignBtn').textContent = "Assemble Outbound Campaign";
+            document.getElementById('campaignForm').reset(); switchSource('manual'); toggleModal(true);
+        };
+
+        window.editCampaign = (id) => {
+            const camp = allCampaigns.find(c => c.id === id); if (!camp) return;
+            editingCampaignId = id; document.getElementById('modalTitle').textContent = "Edit Campaign";
+            document.getElementById('saveCampaignBtn').textContent = "Save Changes";
+            document.getElementById('campName').value = camp.name || '';
+            document.getElementById('campTargetSelector').value = camp.group_id ? `group_${camp.group_id}` : `agent_${camp.agent_id}`;
+            document.getElementById('campMaxDuration').value = camp.max_duration || 120;
+            switchSource('manual'); document.getElementById('manualNumbers').value = (Array.isArray(camp.numbers) ? camp.numbers : []).join('\n');
+            toggleModal(true);
+        };
+
+        window.deleteCampaign = async (id) => {
+            if (!confirm("Are you sure you want to permanently delete this campaign?")) return;
+            await supabase.from('campaigns').delete().eq('id', id);
+            await loadCampaignsDOM();
+        };
+
+        document.getElementById('campaignForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('saveCampaignBtn'); const originalText = btn.textContent;
+            btn.disabled = true; btn.textContent = 'Processing...';
+
+            let finalNumbers = [];
+            if (activeSource === 'manual') {
+                finalNumbers = document.getElementById('manualNumbers').value.split('\n').map(n => n.trim()).filter(n => n.length >= 7);
+            } else {
+                const file = document.getElementById('csvFile').files[0];
+                if (file) { finalNumbers = parseCSV(await file.text()); }
+                else if (editingCampaignId) {
+                    const existing = allCampaigns.find(c => c.id === editingCampaignId);
+                    if (existing) finalNumbers = Array.isArray(existing.numbers) ? existing.numbers : [];
+                }
+            }
+            finalNumbers = [...new Set(finalNumbers)];
+            if (finalNumbers.length === 0) { alert('Sourcing failed: Provide valid numbers.'); btn.disabled = false; btn.textContent = originalText; return; }
+
+            const targetVal = document.getElementById('campTargetSelector').value;
+            const isGroup = targetVal.startsWith('group_'); const targetId = targetVal.split('_')[1];
+
+            const payload = {
+                business_id: business.id, name: document.getElementById('campName').value.trim(),
+                agent_id: isGroup ? null : targetId, group_id: isGroup ? targetId : null,
+                target_type: activeSource, numbers: finalNumbers, max_duration: parseInt(document.getElementById('campMaxDuration').value, 10),
+            };
+
+            let response;
+            if (editingCampaignId) {
+                response = await supabase.from('campaigns').update(payload).eq('id', editingCampaignId);
+            } else { 
+                payload.status = 'paused'; response = await supabase.from('campaigns').insert(payload); 
+            }
+
+            btn.disabled = false; btn.textContent = originalText;
+            if (response.error) { alert('Database operations failure: ' + response.error.message); } 
+            else { toggleModal(false); document.getElementById('campaignForm').reset(); await loadCampaignsDOM(); }
+        });
+
+        window.toggleModal = (show) => { document.getElementById('campaignModal').style.display = show ? 'flex' : 'none'; };
+        window.switchSource = (src) => {
+            activeSource = src;
+            document.getElementById('manualInputContainer').classList.toggle('hidden', src !== 'manual');
+            document.getElementById('csvInputContainer').classList.toggle('hidden', src !== 'csv');
+            document.getElementById('sourceManualBtn').className = src === 'manual' ? 'px-4 py-2 bg-blue-600 rounded-lg font-medium transition-all' : 'px-4 py-2 text-gray-400 hover:text-white font-medium transition-all';
+            document.getElementById('sourceCsvBtn').className = src === 'csv' ? 'px-4 py-2 bg-blue-600 rounded-lg font-medium transition-all' : 'px-4 py-2 text-gray-400 hover:text-white font-medium transition-all';
+        };
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => { await supabase.auth.signOut(); window.location.href = 'login.html'; });
+        init();
+    </script>
+</body>
+</html>

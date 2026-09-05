@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agents — BusyDail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+        .animate-pulse-slow { animation: pulse-slow 8s ease-in-out infinite; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen relative overflow-x-hidden font-sans flex">
+
+    <div class="fixed top-[-10%] left-[20%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse-slow pointer-events-none z-0"></div>
+    <div class="fixed bottom-[-10%] right-[-5%] w-[30%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse-slow pointer-events-none z-0" style="animation-delay:2s;"></div>
+
+    <div class="md:hidden fixed top-0 left-0 w-full bg-gray-900/80 backdrop-blur-xl border-b border-white/10 p-4 flex items-center justify-between z-40 shadow-lg">
+        <a href="index.html" class="flex items-center gap-2">
+            <img src="bdlogo.png" alt="BusyDail" class="h-8 w-auto">
+        </a>
+        <button id="mobileMenuBtn" class="text-white hover:text-blue-400 transition">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+    </div>
+
+    <div id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-gray-900/90 backdrop-blur-2xl border-r border-white/10 flex flex-col z-50 transition-transform duration-300 transform -translate-x-full md:translate-x-0">
+        <button id="closeMenuBtn" class="md:hidden absolute top-5 right-5 text-gray-400 hover:text-white transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        <div class="p-6 pt-8 md:pt-6 border-b border-white/10 flex flex-col">
+            <a href="index.html" class="flex items-center gap-3 group mb-1">
+                <img src="bdlogo.png" alt="BusyDail" class="h-8 w-auto transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                <img src="bdtext.png" alt="BusyDail" class="h-5 w-auto opacity-90 group-hover:opacity-100 transition-opacity">
+            </a>
+            <div id="userEmail" class="text-xs text-blue-400 mt-2 truncate bg-blue-500/10 px-2 py-1 rounded-md inline-block max-w-fit border border-blue-500/20"></div>
+        </div>
+        <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
+    <a href="dashboard.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📊 Dashboard</a>
+    <a href="agents.html" class="block px-4 py-3 rounded-xl text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium shadow-[0_0_15px_rgba(37,99,235,0.3)]">🤖 Agents</a>
+    <a href="groups.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">👥 Agent Groups</a>
+    <a href="contacts.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">👥 Contacts</a>
+    <a href="calls.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📞 Call History</a>
+    <a href="make-call.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📲 Make a Call</a>
+    <a href="billing.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">💳 Billing</a>
+    <a href="settings.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">⚙️ Settings</a>
+</nav>
+        <div class="p-5 border-t border-white/10 bg-black/20">
+            <button id="logoutBtn" class="w-full py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-xl transition-all font-medium">Logout</button>
+        </div>
+    </div>
+
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden md:hidden"></div>
+
+    <div class="md:ml-64 p-5 sm:p-8 pt-24 md:pt-8 flex-1 relative z-10 w-full min-h-screen">
+
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">AI Agents</h1>
+                <p class="text-gray-400 mt-2 text-sm sm:text-base">Create and manage your AI calling agents</p>
+            </div>
+            <button id="createAgentBtn" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:-translate-y-0.5 rounded-xl font-semibold transition-all duration-300 flex justify-center items-center gap-2">
+                <span class="text-xl leading-none">+</span> Create Agent
+            </button>
+        </div>
+
+        <div id="modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[60] p-4">
+            <div class="bg-gray-900/95 border border-white/10 rounded-3xl p-6 sm:p-8 w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl">
+
+                <h2 id="modalTitle" class="text-xl font-bold mb-6 tracking-tight">Create New Agent</h2>
+                <div id="modalError" class="hidden mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm"></div>
+
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1.5 ml-1">Agent Name *</label>
+                        <input id="agentName" type="text" placeholder="e.g. Sales Agent, Support Bot"
+                            class="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm"/>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1.5 ml-1">Voice</label>
+                        <select id="agentVoice" class="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500 transition-all text-sm appearance-none cursor-pointer">
+                            <optgroup label="🚺 Female Voices" class="bg-gray-900">
+                                <option value="Aoede" class="bg-gray-900">Aoede — Female, Natural & Warm</option>
+                                <option value="Kore" class="bg-gray-900">Kore — Female, Soft & Calm</option>
+                                <option value="Leda" class="bg-gray-900">Leda — Female, Clear & Professional</option>
+                                <option value="Zephyr" class="bg-gray-900">Zephyr — Female, Bright & Energetic</option>
+                            </optgroup>
+                            <optgroup label="🚹 Male Voices" class="bg-gray-900">
+                                <option value="Puck" class="bg-gray-900">Puck — Male, Friendly & Casual</option>
+                                <option value="Charon" class="bg-gray-900">Charon — Male, Deep & Authoritative</option>
+                                <option value="Fenrir" class="bg-gray-900">Fenrir — Male, Strong & Confident</option>
+                                <option value="Orus" class="bg-gray-900">Orus — Male, Smooth & Professional</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="p-5 bg-black/20 border border-white/5 rounded-2xl space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-200 mb-0.5">🎵 Background Sound <span class="text-gray-500 font-normal">(optional)</span></label>
+                                <p class="text-xs text-gray-500">Add ambient sound to make calls feel more real</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer ml-4">
+                                <input type="checkbox" id="soundEnabled" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+
+                        <div id="soundOptions" class="hidden space-y-4">
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-2">Select Sound</label>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="soundGrid"></div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <label class="text-xs text-gray-400">Volume Intensity</label>
+                                    <span id="volumeLabel" class="text-xs font-semibold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">30%</span>
+                                </div>
+                                <input type="range" id="soundVolume" min="0" max="100" value="30"
+                                    class="w-full h-2 bg-gray-700 rounded-full appearance-none cursor-pointer accent-blue-500">
+                            </div>
+                            <div id="previewPlayer" class="hidden flex items-center gap-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                                <button id="previewPlayBtn" class="w-9 h-9 bg-blue-600 hover:bg-blue-500 rounded-full flex items-center justify-center transition shrink-0 text-sm">▶</button>
+                                <div class="flex-1">
+                                    <div class="text-xs text-blue-300 font-medium" id="previewSoundName">No sound selected</div>
+                                    <div class="text-xs text-gray-500 mt-0.5">Preview at selected volume</div>
+                                </div>
+                                <button id="previewStopBtn" class="text-xs text-gray-400 hover:text-white transition px-3 py-1.5 bg-white/5 rounded-lg border border-white/10">Stop</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1 ml-1">Agent Prompt *</label>
+                        <p class="text-xs text-gray-500 mb-2.5 ml-1">Describe how your agent should behave, language, goals, and what to say.</p>
+                        <textarea id="agentPrompt" rows="6"
+                            placeholder="Example: You are a friendly sales agent for ABC Pharma calling doctors in India..."
+                            class="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none text-sm leading-relaxed"></textarea>
+                    </div>
+
+                    <div class="flex items-center gap-3 p-3 bg-black/10 rounded-xl border border-white/5">
+                        <input type="checkbox" id="agentDefault" class="w-5 h-5 accent-blue-500 rounded cursor-pointer"/>
+                        <label for="agentDefault" class="text-sm text-gray-300 cursor-pointer select-none">Set as default agent for all campaigns</label>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                        <button id="cancelBtn" class="flex-1 py-3 bg-gray-800 hover:bg-gray-700 border border-white/10 rounded-xl font-semibold transition-all">Cancel</button>
+                        <button id="saveAgentBtn" class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 hover:shadow-[0_0_15px_rgba(37,99,235,0.4)] rounded-xl font-semibold transition-all">Create Agent</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="detailModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[60] p-4">
+            <div class="bg-gray-900/95 border border-white/10 rounded-3xl p-6 sm:p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold tracking-tight">Agent Details</h2>
+                    <button id="closeDetailBtn" class="text-gray-400 hover:text-white transition p-1 hover:bg-white/10 rounded-lg">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <div id="detailContent" class="space-y-4"></div>
+                <div class="flex gap-3 mt-6">
+                    <button id="editFromDetailBtn" class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold transition-all text-sm">✏️ Edit Agent</button>
+                    <button id="closeDetailBtn2" class="flex-1 py-3 bg-gray-800 hover:bg-gray-700 border border-white/10 rounded-xl font-semibold transition-all text-sm">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="agentsList"></div>
+
+    </div>
+
+    <script type="module">
+        import { supabase, getUser, getBusiness } from './supabase.js';
+
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        function toggleSidebar() {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+        document.getElementById('mobileMenuBtn')?.addEventListener('click', toggleSidebar);
+        document.getElementById('closeMenuBtn')?.addEventListener('click', toggleSidebar);
+        overlay?.addEventListener('click', toggleSidebar);
+
+        const user = await getUser();
+        if (!user) { window.location.href = 'login.html'; }
+
+        const business = await getBusiness(user.email);
+        if (!business) { window.location.href = 'onboarding.html'; }
+
+        document.getElementById('userEmail').textContent = user.email;
+
+        const SOUNDS = [
+            { id: 'none',        label: 'None',          emoji: '🔇', url: null },
+            { id: 'office',      label: 'Office',        emoji: '🏢', url: 'office.mp3' },
+            { id: 'call_center', label: 'Call Center',   emoji: '📞', url: 'call_center.mp3' },
+            { id: 'traffic',     label: 'Traffic',       emoji: '🚗', url: 'traffic.mp3' },
+            { id: 'nature',      label: 'Nature',        emoji: '🌿', url: 'nature.mp3' },
+            { id: 'cafe',        label: 'Café',          emoji: '☕', url: 'cafe.mp3' },
+            { id: 'rain',        label: 'Rain',          emoji: '🌧️', url: 'rain.mp3' },
+            { id: 'fan',         label: 'Fan / AC',      emoji: '❄️', url: 'fan.mp3' },
+        ];
+
+        let selectedSound = 'none';
+        let previewAudio = null;
+
+        function renderSoundGrid() {
+            const grid = document.getElementById('soundGrid');
+            grid.innerHTML = SOUNDS.map(s => `
+                <button type="button" data-sound="${s.id}"
+                    onclick="selectSound('${s.id}')"
+                    class="sound-btn flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all text-center ${selectedSound === s.id ? 'bg-blue-600/20 border-blue-500/50 text-blue-300' : 'bg-black/20 border-white/10 text-gray-400 hover:border-white/30 hover:text-white'}">
+                    <span class="text-2xl">${s.emoji}</span>
+                    <span class="text-xs font-medium">${s.label}</span>
+                </button>`).join('');
+        }
+
+        window.selectSound = (id) => {
+            selectedSound = id;
+            renderSoundGrid();
+            if (previewAudio) { previewAudio.pause(); previewAudio = null; }
+            const sound = SOUNDS.find(s => s.id === id);
+            const previewPlayer = document.getElementById('previewPlayer');
+            const previewSoundName = document.getElementById('previewSoundName');
+
+            if (id === 'none' || !sound?.url) {
+                previewPlayer.classList.add('hidden');
+            } else {
+                previewSoundName.textContent = `${sound.emoji} ${sound.label}`;
+                previewPlayer.classList.remove('hidden');
+            }
+        };
+
+        document.getElementById('soundVolume').addEventListener('input', (e) => {
+            document.getElementById('volumeLabel').textContent = `${e.target.value}%`;
+            if (previewAudio) previewAudio.volume = e.target.value / 100;
+        });
+
+        document.getElementById('previewPlayBtn').addEventListener('click', () => {
+            const sound = SOUNDS.find(s => s.id === selectedSound);
+            if (!sound?.url) return;
+            if (previewAudio) { previewAudio.pause(); previewAudio = null; }
+            previewAudio = new Audio(sound.url);
+            previewAudio.loop = true;
+            previewAudio.volume = document.getElementById('soundVolume').value / 100;
+            previewAudio.play().catch(() => {});
+            document.getElementById('previewPlayBtn').textContent = '⏸';
+        });
+
+        document.getElementById('previewStopBtn').addEventListener('click', () => {
+            if (previewAudio) { previewAudio.pause(); previewAudio = null; }
+            document.getElementById('previewPlayBtn').textContent = '▶';
+        });
+
+        document.getElementById('soundEnabled').addEventListener('change', (e) => {
+            document.getElementById('soundOptions').classList.toggle('hidden', !e.target.checked);
+            if (!e.target.checked) {
+                if (previewAudio) { previewAudio.pause(); previewAudio = null; }
+                selectedSound = 'none';
+            }
+        });
+
+        let editingAgentId = null;
+        let currentDetailAgentId = null;
+
+        function openCreateModal() {
+            editingAgentId = null;
+            document.getElementById('modalTitle').textContent = 'Create New Agent';
+            document.getElementById('saveAgentBtn').textContent = 'Create Agent';
+            document.getElementById('agentName').value = '';
+            document.getElementById('agentPrompt').value = '';
+            document.getElementById('agentVoice').value = 'Aoede';
+            document.getElementById('agentDefault').checked = false;
+            document.getElementById('soundEnabled').checked = false;
+            document.getElementById('soundOptions').classList.add('hidden');
+            document.getElementById('previewPlayer').classList.add('hidden');
+            document.getElementById('soundVolume').value = 30;
+            document.getElementById('volumeLabel').textContent = '30%';
+            selectedSound = 'none';
+            renderSoundGrid();
+            document.getElementById('modalError').classList.add('hidden');
+            document.getElementById('modal').classList.remove('hidden');
+            if (previewAudio) { previewAudio.pause(); previewAudio = null; }
+        }
+
+        function openEditModal(agent) {
+            editingAgentId = agent.id;
+            document.getElementById('modalTitle').textContent = 'Edit Agent';
+            document.getElementById('saveAgentBtn').textContent = 'Save Changes';
+            document.getElementById('agentName').value = agent.name;
+            document.getElementById('agentPrompt').value = agent.prompt;
+            document.getElementById('agentVoice').value = agent.voice || 'Aoede';
+            document.getElementById('agentDefault').checked = agent.is_default || false;
+
+            const hasSnd = agent.background_sound && agent.background_sound !== 'none';
+            document.getElementById('soundEnabled').checked = hasSnd;
+            document.getElementById('soundOptions').classList.toggle('hidden', !hasSnd);
+            selectedSound = agent.background_sound || 'none';
+            document.getElementById('soundVolume').value = agent.sound_volume ?? 30;
+            document.getElementById('volumeLabel').textContent = `${agent.sound_volume ?? 30}%`;
+            renderSoundGrid();
+
+            const sound = SOUNDS.find(s => s.id === selectedSound);
+            const previewPlayer = document.getElementById('previewPlayer');
+            if (hasSnd && sound?.url) {
+                document.getElementById('previewSoundName').textContent = `${sound.emoji} ${sound.label}`;
+                previewPlayer.classList.remove('hidden');
+            } else {
+                previewPlayer.classList.add('hidden');
+            }
+
+            document.getElementById('modalError').classList.add('hidden');
+            document.getElementById('modal').classList.remove('hidden');
+            if (previewAudio) { previewAudio.pause(); previewAudio = null; }
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+            if (previewAudio) { previewAudio.pause(); previewAudio = null; }
+        }
+
+        document.getElementById('createAgentBtn').addEventListener('click', openCreateModal);
+        document.getElementById('cancelBtn').addEventListener('click', closeModal);
+
+        document.getElementById('saveAgentBtn').addEventListener('click', async () => {
+            const name = document.getElementById('agentName').value.trim();
+            const prompt = document.getElementById('agentPrompt').value.trim();
+            const voice = document.getElementById('agentVoice').value;
+            const isDefault = document.getElementById('agentDefault').checked;
+            const soundEnbl = document.getElementById('soundEnabled').checked;
+            const background_sound = soundEnbl && selectedSound !== 'none' ? selectedSound : 'none';
+            const sound_volume = parseInt(document.getElementById('soundVolume').value);
+            const modalError = document.getElementById('modalError');
+            const btn = document.getElementById('saveAgentBtn');
+
+            if (!name || !prompt) {
+                modalError.textContent = 'Agent name and prompt are required.';
+                modalError.classList.remove('hidden');
+                return;
+            }
+
+            const originalText = btn.textContent;
+            btn.textContent = editingAgentId ? 'Saving...' : 'Creating...';
+            btn.disabled = true;
+
+            if (isDefault) {
+                await supabase.from('agents').update({ is_default: false }).eq('business_id', business.id);
+            }
+
+            let error;
+            if (editingAgentId) {
+                ({ error } = await supabase.from('agents').update({
+                    name, prompt, voice, is_default: isDefault,
+                    background_sound, sound_volume
+                }).eq('id', editingAgentId));
+            } else {
+                ({ error } = await supabase.from('agents').insert({
+                    business_id: business.id,
+                    name, prompt, voice, is_default: isDefault,
+                    background_sound, sound_volume
+                }));
+            }
+
+            if (error) {
+                modalError.textContent = error.message;
+                modalError.classList.remove('hidden');
+                btn.textContent = originalText;
+                btn.disabled = false;
+                return;
+            }
+
+            closeModal();
+            btn.textContent = originalText;
+            btn.disabled = false;
+            await loadAgents();
+        });
+
+        function openDetailModal(agent) {
+            currentDetailAgentId = agent.id;
+            const sound = SOUNDS.find(s => s.id === agent.background_sound) || SOUNDS[0];
+            const voiceGender = ['Aoede','Kore','Leda','Zephyr'].includes(agent.voice) ? '🚺 Female' : '🚹 Male';
+
+            document.getElementById('detailContent').innerHTML = `
+                <div class="flex flex-col items-center gap-3 mb-4">
+                    <div class="w-20 h-20 rounded-full flex items-center justify-center text-5xl shadow-lg border-2 border-blue-500/30 bg-blue-500/10">
+                        ${['Aoede','Kore','Leda','Zephyr'].includes(agent.voice) ? '👩' : '👨'}
+                    </div>
+                    <div class="text-center">
+                        <h3 class="text-xl font-bold">${agent.name}</h3>
+                        ${agent.is_default ? '<span class="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded-full border border-blue-500/30">Default Agent</span>' : ''}
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3 bg-black/20 border border-white/5 rounded-xl">
+                        <div class="text-xs text-gray-500 mb-1">Voice</div>
+                        <div class="text-sm font-semibold">${agent.voice}</div>
+                        <div class="text-xs text-gray-400">${voiceGender}</div>
+                    </div>
+                    <div class="p-3 bg-black/20 border border-white/5 rounded-xl">
+                        <div class="text-xs text-gray-500 mb-1">Background Sound</div>
+                        <div class="text-sm font-semibold">${sound.emoji} ${sound.label}</div>
+                        ${agent.background_sound && agent.background_sound !== 'none' ? `<div class="text-xs text-gray-400">Volume: ${agent.sound_volume ?? 30}%</div>` : ''}
+                    </div>
+                </div>
+                <div class="p-4 bg-black/20 border border-white/5 rounded-xl">
+                    <div class="text-xs text-gray-500 mb-2 font-semibold uppercase tracking-wider">Agent Prompt</div>
+                    <p class="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">${agent.prompt}</p>
+                </div>
+                <div class="text-xs text-gray-500 text-right">Created: ${new Date(agent.created_at).toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'})}</div>`;
+
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        document.getElementById('closeDetailBtn').addEventListener('click', () => document.getElementById('detailModal').classList.add('hidden'));
+        document.getElementById('closeDetailBtn2').addEventListener('click', () => document.getElementById('detailModal').classList.add('hidden'));
+        document.getElementById('editFromDetailBtn').addEventListener('click', async () => {
+            document.getElementById('detailModal').classList.add('hidden');
+            const { data: agent } = await supabase.from('agents').select('*').eq('id', currentDetailAgentId).single();
+            if (agent) openEditModal(agent);
+        });
+
+        async function loadAgents() {
+            document.getElementById('agentsList').innerHTML = `
+                <div class="text-center py-12 text-gray-500">
+                    <div class="text-4xl mb-4 animate-pulse">⏳</div>
+                    <div class="font-medium">Loading agents...</div>
+                </div>`;
+
+            const { data: agents } = await supabase
+                .from('agents').select('*')
+                .eq('business_id', business.id)
+                .order('created_at', { ascending: false });
+
+            if (!agents || agents.length === 0) {
+                document.getElementById('agentsList').innerHTML = `
+                    <div class="text-center py-16 bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-3xl">
+                        <div class="text-5xl mb-4 opacity-70">🤖</div>
+                        <div class="text-lg font-medium text-white mb-2">No agents yet.</div>
+                        <div class="text-sm text-gray-400">Create your first AI agent to start making calls!</div>
+                    </div>`;
+                return;
+            }
+
+            document.getElementById('agentsList').innerHTML = `
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    ${agents.map(agent => {
+                        const isFemale = ['Aoede','Kore','Leda','Zephyr'].includes(agent.voice);
+                        const sound = SOUNDS.find(s => s.id === agent.background_sound) || SOUNDS[0];
+                        return `
+                        <div class="relative group bg-gray-900/50 backdrop-blur-xl border ${agent.is_default ? 'border-blue-500/50' : 'border-white/10'} rounded-3xl p-5 flex flex-col items-center gap-3 hover:bg-gray-800/60 transition-all hover:-translate-y-1 hover:shadow-xl cursor-pointer"
+                            onclick="openDetail('${agent.id}')">
+
+                            ${agent.is_default ? '<div class="absolute top-3 right-3 px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded-full border border-blue-500/30 font-semibold">Default</div>' : ''}
+
+                            <div class="w-16 h-16 rounded-full flex items-center justify-center text-4xl shadow-lg border-2 ${isFemale ? 'border-pink-500/30 bg-pink-500/10' : 'border-blue-500/30 bg-blue-500/10'} mt-1">
+                                ${isFemale ? '👩' : '👨'}
+                            </div>
+
+                            <div class="text-center">
+                                <div class="font-bold text-sm tracking-tight truncate max-w-full">${agent.name}</div>
+                                <div class="text-xs text-gray-400 mt-0.5">${agent.voice} • ${isFemale ? 'Female' : 'Male'}</div>
+                            </div>
+
+                            ${agent.background_sound && agent.background_sound !== 'none' ?
+                                `<div class="text-xs bg-purple-500/10 border border-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full">${sound.emoji} ${sound.label}</div>`
+                                : ''}
+
+                            <div class="absolute bottom-3 right-3 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onclick="event.stopPropagation(); editAgent('${agent.id}')"
+                                    class="w-7 h-7 bg-blue-600/30 hover:bg-blue-600/60 border border-blue-500/30 rounded-lg flex items-center justify-center text-blue-400 text-xs transition-all" title="Edit">✏️</button>
+                                <button onclick="event.stopPropagation(); deleteAgent('${agent.id}')"
+                                    class="w-7 h-7 bg-red-500/20 hover:bg-red-500/40 border border-red-500/20 rounded-lg flex items-center justify-center text-red-400 text-xs transition-all" title="Delete">🗑</button>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>`;
+        }
+
+        window.openDetail = async (id) => {
+            const { data: agent } = await supabase.from('agents').select('*').eq('id', id).single();
+            if (agent) openDetailModal(agent);
+        };
+
+        window.editAgent = async (id) => {
+            const { data: agent } = await supabase.from('agents').select('*').eq('id', id).single();
+            if (agent) openEditModal(agent);
+        };
+
+        window.deleteAgent = async (id) => {
+            if (!confirm('Delete this agent? This cannot be undone.')) return;
+            await supabase.from('agents').delete().eq('id', id);
+            await loadAgents();
+        };
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.href = 'login.html';
+        });
+
+        renderSoundGrid();
+        await loadAgents();
+    </script>
+</body>
+</html>

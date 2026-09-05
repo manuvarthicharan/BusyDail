@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Groups — BusyDail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+        .animate-pulse-slow { animation: pulse-slow 8s ease-in-out infinite; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+    </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen relative overflow-x-hidden font-sans flex">
+
+    <!-- Background Elements -->
+    <div class="fixed top-[-10%] left-[20%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse-slow pointer-events-none z-0"></div>
+    <div class="fixed bottom-[-10%] right-[-5%] w-[30%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse-slow pointer-events-none z-0" style="animation-delay: 2s;"></div>
+
+    <!-- Mobile Header -->
+    <div class="md:hidden fixed top-0 left-0 w-full bg-gray-900/80 backdrop-blur-xl border-b border-white/10 p-4 flex items-center justify-between z-40 shadow-lg">
+        <a href="index.html" class="flex items-center gap-2">
+            <img src="bdlogo.png" alt="BusyDail Icon" class="h-8 w-auto">
+        </a>
+        <button id="mobileMenuBtn" class="text-white hover:text-blue-400 focus:outline-none transition">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+    </div>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-gray-900/90 backdrop-blur-2xl border-r border-white/10 flex flex-col z-50 transition-transform duration-300 transform -translate-x-full md:translate-x-0 shadow-[20px_0_50px_rgba(0,0,0,0.3)] md:shadow-none">
+        <button id="closeMenuBtn" class="md:hidden absolute top-5 right-5 text-gray-400 hover:text-white transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+
+        <div class="p-6 pt-8 md:pt-6 border-b border-white/10 flex flex-col">
+            <a href="index.html" class="flex items-center gap-3 group mb-1">
+                <img src="bdlogo.png" alt="BusyDail Icon" class="h-8 w-auto transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                <img src="bdtext.png" alt="BusyDail" class="h-5 w-auto opacity-90 group-hover:opacity-100 transition-opacity">
+            </a>
+            <div id="userEmail" class="text-xs text-blue-400 mt-2 truncate bg-blue-500/10 px-2 py-1 rounded-md inline-block max-w-fit border border-blue-500/20"></div>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
+    <a href="dashboard.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📊 Dashboard</a>
+    <a href="agents.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">🤖 Agents</a>
+    <a href="groups.html" class="block px-4 py-3 rounded-xl text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium shadow-[0_0_15px_rgba(37,99,235,0.3)]">👥 Agent Groups</a>
+    <a href="contacts.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">👥 Contacts</a>
+    <a href="calls.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📞 Call History</a>
+    <a href="make-call.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📲 Make a Call</a>
+    <a href="billing.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">💳 Billing</a>
+    <a href="settings.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">⚙️ Settings</a>
+</nav>
+
+        <div class="p-5 border-t border-white/10 bg-black/20">
+            <button id="logoutBtn" class="w-full py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-xl transition-all font-medium">Logout</button>
+        </div>
+    </div>
+
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
+
+    <!-- Main Workspace -->
+    <div class="md:ml-64 p-5 sm:p-8 pt-24 md:pt-8 flex-1 relative z-10 w-full min-h-screen flex flex-col lg:flex-row gap-8">
+        
+        <!-- Left: Form Block -->
+        <div class="w-full lg:w-5/12 bg-gray-900/40 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-2xl h-fit">
+            <h2 class="text-xl font-bold tracking-tight mb-1">Create Agent Team</h2>
+            <p class="text-gray-400 text-xs mb-6">Group agents together and write conditions for real-time call transfers.</p>
+            
+            <form id="groupForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Team Name</label>
+                    <input type="text" id="groupName" required placeholder="e.g., Support & Sales Department" class="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-blue-500 text-white placeholder-gray-600 transition">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Primary Agent (Answers First)</label>
+                    <select id="primaryAgent" required class="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-blue-500 text-white transition">
+                        <option value="" disabled selected class="bg-gray-950">Choose primary persona...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Handoff Routing Instructions (Prompt)</label>
+                    <textarea id="routingConditions" required rows="4" placeholder="Be extremely specific. e.g., 'If the user states they want to cancel or ask for a refund, transfer the call to Retention Agent. If they ask about buying a plan, transfer to Sales Agent.'" class="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-blue-500 text-white placeholder-gray-600 transition resize-none"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Select Team Members (Available for Transfer)</label>
+                    <div id="membersCheckboxContainer" class="space-y-2 max-h-40 overflow-y-auto p-3 bg-black/20 rounded-xl border border-white/5">
+                        <p class="text-xs text-gray-500">Loading your active agents...</p>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition shadow-lg shadow-blue-600/20 mt-2">Assemble Team</button>
+            </form>
+        </div>
+
+        <!-- Right: List View -->
+        <div class="flex-1 flex flex-col">
+            <div class="mb-6">
+                <h2 class="text-xl font-bold tracking-tight">Active Teams</h2>
+                <p class="text-gray-400 text-xs mt-1">Multi-agent configurations deployed to your enterprise infrastructure.</p>
+            </div>
+
+            <div id="groupsList" class="space-y-4 flex-1">
+                <!-- Injected via Javascript -->
+                <p class="text-sm text-gray-500">Scanning workflows...</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase, getUser, getBusiness } from './supabase.js';
+
+        // Sidebar Toggle Engine
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const closeMenuBtn = document.getElementById('closeMenuBtn');
+        function toggleSidebar() { sidebar.classList.toggle('-translate-x-full'); overlay.classList.toggle('hidden'); }
+        if(mobileMenuBtn) mobileMenuBtn.addEventListener('click', toggleSidebar);
+        if(closeMenuBtn) closeMenuBtn.addEventListener('click', toggleSidebar);
+        if(overlay) overlay.addEventListener('click', toggleSidebar);
+
+        // Core App Lifecycle
+        async function init() {
+            const user = await getUser();
+            if (!user) { window.location.href = 'login.html'; return; }
+            document.getElementById('userEmail').textContent = user.email;
+
+            const business = await getBusiness(user.email);
+            if (!business) { window.location.href = 'onboarding.html'; return; }
+
+            // Fetch Agents to populate form fields
+            const { data: agents } = await supabase
+                .from('agents')
+                .select('id, name')
+                .eq('business_id', business.id);
+
+            populateFormDropdowns(agents || []);
+            loadActiveTeams(business.id, agents || []);
+
+            // Handle Group Form submission
+            document.getElementById('groupForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = document.getElementById('groupName').value;
+                const primaryAgentId = document.getElementById('primaryAgent').value;
+                const routingConditions = document.getElementById('routingConditions').value;
+
+                // Gather selected check-box IDs
+                const checkedBoxes = document.querySelectorAll('.member-checkbox:checked');
+                const selectedAgentIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+                // 1. Insert into core ai_groups table
+                const { data: newGroup, error: groupErr } = await supabase
+                    .from('ai_groups')
+                    .insert([{
+                        business_id: business.id,
+                        name,
+                        primary_agent_id: primaryAgentId,
+                        routing_conditions: routingConditions
+                    }])
+                    .select()
+                    .single();
+
+                if (groupErr) { alert(`Error setting up team properties: ${groupErr.message}`); return; }
+
+                // 2. Insert links into group_members cross-reference junction table
+                if (selectedAgentIds.length > 0) {
+                    const trackingRows = selectedAgentIds.map(id => ({
+                        group_id: newGroup.id,
+                        agent_id: id
+                    }));
+                    const { error: memberErr } = await supabase.from('group_members').insert(trackingRows);
+                    if (memberErr) console.error("Error link indexing team backups:", memberErr);
+                }
+
+                alert("Multi-agent team assembled successfully!");
+                window.location.reload();
+            });
+        }
+
+        function populateFormDropdowns(agents) {
+            const dropdown = document.getElementById('primaryAgent');
+            const checkboxContainer = document.getElementById('membersCheckboxContainer');
+            
+            if (agents.length === 0) {
+                checkboxContainer.innerHTML = '<p class="text-xs text-red-400">Please deploy individual agents first.</p>';
+                return;
+            }
+
+            checkboxContainer.innerHTML = '';
+            agents.forEach(agent => {
+                // Populate Primary Select field
+                const opt = document.createElement('option');
+                opt.value = agent.id;
+                opt.textContent = agent.name;
+                opt.className = "bg-gray-950";
+                dropdown.appendChild(opt);
+
+                // Populate Multi-Select Checklist mapping container
+                const wrapper = document.createElement('label');
+                wrapper.className = "flex items-center gap-3 py-1.5 px-2 hover:bg-white/5 rounded-lg cursor-pointer text-sm text-gray-300 transition";
+                wrapper.innerHTML = `
+                    <input type="checkbox" value="${agent.agent_id || agent.id}" class="member-checkbox w-4 h-4 rounded border-white/10 bg-black text-blue-600 focus:ring-0 focus:ring-offset-0">
+                    <span>${agent.name}</span>
+                `;
+                checkboxContainer.appendChild(wrapper);
+            });
+        }
+
+        async function loadActiveTeams(businessId, allAgents) {
+            const listContainer = document.getElementById('groupsList');
+
+            // Pull group layouts paired with relational inner member references
+            const { data: groups, error } = await supabase
+                .from('ai_groups')
+                .select(`
+                    id, name, routing_conditions, primary_agent_id,
+                    group_members(agent_id)
+                `)
+                .eq('business_id', businessId)
+                .order('created_at', { ascending: false });
+
+            if (error || !groups || groups.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center py-12 bg-white/5 border border-white/5 rounded-2xl text-gray-500 text-sm">
+                        No active multi-agent teams deployed yet. Create your first operational cluster on the left.
+                    </div>`;
+                return;
+            }
+
+            // Create reference dictionary maps for agent visual parsing resolution
+            const agentNameMap = allAgents.reduce((acc, curr) => ({...acc, [curr.id]: curr.name}), {});
+
+            listContainer.innerHTML = groups.map(group => {
+                const primaryName = agentNameMap[group.primary_agent_id] || "Unknown Base Agent";
+                const activeBackups = (group.group_members || [])
+                    .map(m => agentNameMap[m.agent_id])
+                    .filter(Boolean);
+
+                return `
+                    <div class="bg-gray-900/30 border border-white/5 hover:border-white/10 p-5 rounded-2xl transition duration-300 relative group flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="text-lg font-bold text-white">${group.name}</h3>
+                                <button onclick="window.deleteGroup('${group.id}')" class="text-xs text-red-500/60 hover:text-red-400 font-medium opacity-0 group-hover:opacity-100 transition duration-300">Dismantle Team</button>
+                            </div>
+                            <div class="text-xs text-gray-400 bg-black/30 p-3 rounded-xl border border-white/5 font-mono mb-4 line-clamp-3" title="${group.routing_conditions}">
+                                <span class="text-blue-400 font-semibold">Transfer Rules:</span> ${group.routing_conditions}
+                            </div>
+                            <div class="flex flex-wrap gap-2 items-center text-xs">
+                                <span class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2.5 py-1 rounded-md font-medium">Answering Agent: ${primaryName}</span>
+                                ${activeBackups.map(name => `<span class="bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2.5 py-1 rounded-md">Backup Agent: ${name}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        window.deleteGroup = async (id) => {
+            if (!confirm("Are you certain you want to dismantle this multi-agent configuration mapping workflow?")) return;
+            const { error } = await supabase.from('ai_groups').delete().eq('id', id);
+            if (error) alert(`Error deleting workspace configuration: ${error.message}`);
+            else window.location.reload();
+        };
+
+        init();
+    </script>
+</body>
+</html>

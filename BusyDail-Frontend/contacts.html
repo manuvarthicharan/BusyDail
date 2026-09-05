@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contacts — BusyDail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom AI Startup Animations */
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+        .animate-pulse-slow { 
+            animation: pulse-slow 8s ease-in-out infinite; 
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+    </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen relative overflow-x-hidden font-sans flex">
+
+    <div class="fixed top-[-10%] left-[20%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse-slow pointer-events-none z-0"></div>
+    <div class="fixed bottom-[-10%] right-[-5%] w-[30%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse-slow pointer-events-none z-0" style="animation-delay: 2s;"></div>
+
+    <div class="md:hidden fixed top-0 left-0 w-full bg-gray-900/80 backdrop-blur-xl border-b border-white/10 p-4 flex items-center justify-between z-40 shadow-lg">
+        <a href="index.html" class="flex items-center gap-2">
+            <img src="bdlogo.png" alt="BusyDail Icon" class="h-8 w-auto">
+        </a>
+        <button id="mobileMenuBtn" class="text-white hover:text-blue-400 focus:outline-none transition">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+    </div>
+
+    <div id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-gray-900/90 backdrop-blur-2xl border-r border-white/10 flex flex-col z-50 transition-transform duration-300 transform -translate-x-full md:translate-x-0 shadow-[20px_0_50px_rgba(0,0,0,0.3)] md:shadow-none">
+        
+        <button id="closeMenuBtn" class="md:hidden absolute top-5 right-5 text-gray-400 hover:text-white transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+
+        <div class="p-6 pt-8 md:pt-6 border-b border-white/10 flex flex-col">
+            <a href="index.html" class="flex items-center gap-3 group mb-1">
+                <img src="bdlogo.png" alt="BusyDail Icon" class="h-8 w-auto transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                <img src="bdtext.png" alt="BusyDail" class="h-5 w-auto opacity-90 group-hover:opacity-100 transition-opacity">
+            </a>
+            <div id="userEmail" class="text-xs text-blue-400 mt-2 truncate bg-blue-500/10 px-2 py-1 rounded-md inline-block max-w-fit border border-blue-500/20"></div>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
+    <a href="dashboard.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📊 Dashboard</a>
+    <a href="agents.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">🤖 Agents</a>
+    <a href="groups.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">👥 Agent Groups</a>
+    <a href="contacts.html" class="block px-4 py-3 rounded-xl text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium shadow-[0_0_15px_rgba(37,99,235,0.3)]">👥 Contacts</a>
+    <a href="calls.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📞 Call History</a>
+    <a href="make-call.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📲 Make a Call</a>
+    <a href="billing.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">💳 Billing</a>
+    <a href="settings.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">⚙️ Settings</a>
+</nav>
+
+        <div class="p-5 border-t border-white/10 bg-black/20">
+            <button id="logoutBtn" class="w-full py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-xl transition-all font-medium">Logout</button>
+        </div>
+    </div>
+
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
+
+    <div class="md:ml-64 p-5 sm:p-8 pt-24 md:pt-8 flex-1 relative z-10 w-full min-h-screen">
+        
+        <div class="mb-8 md:mb-10 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Contacts</h1>
+                <p class="text-gray-400 mt-2 text-sm sm:text-base">Manage your CRM and leads for outreach.</p>
+            </div>
+            <button onclick="document.getElementById('contactModal').classList.remove('hidden')" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:-translate-y-0.5 rounded-xl font-semibold transition-all duration-300 text-sm w-full sm:w-auto text-center">
+                + Add Contact
+            </button>
+        </div>
+
+        <div class="bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-8 shadow-2xl">
+            <div id="contactsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="text-center py-12 text-gray-500 col-span-full">
+                    <div class="text-4xl mb-4 animate-pulse">⏳</div>
+                    <div class="font-medium">Loading contacts...</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="contactModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+        <div class="bg-gray-900/95 border border-white/10 rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl">
+            <h2 class="text-xl font-bold mb-6 tracking-tight">Add New Contact</h2>
+            <form id="contactForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1.5 ml-1">Name *</label>
+                    <input type="text" id="cName" required class="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1.5 ml-1">Phone Number *</label>
+                    <input type="text" id="cPhone" placeholder="+919876543210" required class="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm font-mono">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1.5 ml-1">Company</label>
+                    <input type="text" id="cCompany" placeholder="Optional" class="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1.5 ml-1">Tag</label>
+                    <select id="cTag" class="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500 transition-all text-sm appearance-none cursor-pointer">
+                        <option value="lead" class="bg-gray-900">Lead</option>
+                        <option value="customer" class="bg-gray-900">Customer</option>
+                        <option value="prospect" class="bg-gray-900">Prospect</option>
+                    </select>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3 pt-4">
+                    <button type="button" onclick="document.getElementById('contactModal').classList.add('hidden')" class="flex-1 py-3 bg-gray-800 hover:bg-gray-700 border border-white/10 rounded-xl font-semibold transition-all text-sm">Cancel</button>
+                    <button type="submit" class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold transition-all text-sm">Save Contact</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase, getUser, getBusiness } from './supabase.js';
+
+        // --- Mobile Sidebar Toggle Logic ---
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const closeMenuBtn = document.getElementById('closeMenuBtn');
+
+        function toggleSidebar() { 
+            sidebar.classList.toggle('-translate-x-full'); 
+            overlay.classList.toggle('hidden'); 
+        }
+
+        if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', toggleSidebar);
+        if (closeMenuBtn) closeMenuBtn.addEventListener('click', toggleSidebar);
+        if (overlay) overlay.addEventListener('click', toggleSidebar);
+        // ------------------------------------
+
+        // --- AUTH CHECK ---
+        const user = await getUser();
+        if (!user) { window.location.href = 'login.html'; }
+
+        const business = await getBusiness(user.email);
+        if (!business) { 
+            // User is authenticated but hasn't completed setup. Route to onboarding.
+            window.location.href = 'onboarding.html'; 
+        }
+
+        document.getElementById('userEmail').textContent = user.email;
+
+        // --- LOAD CONTACTS ---
+        async function loadContacts() {
+            const { data: contacts, error } = await supabase
+                .from('contacts')
+                .select('*')
+                .eq('business_id', business.id)
+                .order('name');
+            
+            const list = document.getElementById('contactsList');
+            
+            if (error) {
+                list.innerHTML = `<div class="col-span-full text-center py-12 text-red-400">Failed to load contacts.</div>`;
+                return;
+            }
+
+            if (!contacts || contacts.length === 0) {
+                list.innerHTML = `
+                    <div class="col-span-full text-center py-16 bg-black/20 rounded-2xl border border-white/5">
+                        <div class="text-5xl mb-4 opacity-70">👥</div>
+                        <div class="text-gray-400 mb-5 text-sm">Your CRM is empty.</div>
+                        <button onclick="document.getElementById('contactModal').classList.remove('hidden')" class="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-sm transition-all font-medium text-white shadow-[0_0_15px_rgba(37,99,235,0.4)] hover:-translate-y-0.5">
+                            Add First Contact
+                        </button>
+                    </div>`;
+                return;
+            }
+
+            list.innerHTML = contacts.map(c => `
+                <div class="bg-gray-900/50 hover:bg-gray-800/80 backdrop-blur-md border border-white/10 hover:border-blue-500/30 p-5 rounded-2xl flex flex-col gap-2 transition-all duration-300">
+                    <div class="flex justify-between items-start">
+                        <div class="font-bold text-lg tracking-tight truncate pr-2">${c.name}</div>
+                        <span class="shrink-0 px-2.5 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-bold tracking-wider rounded border border-blue-500/20 uppercase">${c.tag}</span>
+                    </div>
+                    <div class="text-sm text-gray-400 font-mono mt-1">${c.phone}</div>
+                    ${c.company ? `<div class="text-sm text-gray-500 mt-2 truncate">🏢 ${c.company}</div>` : '<div class="text-sm text-transparent mt-2 select-none">🏢 No Company</div>'}
+                    
+                    <div class="mt-4 pt-4 border-t border-white/5 flex gap-2">
+                        <a href="make-call.html?phone=${encodeURIComponent(c.phone)}" class="text-xs font-semibold bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-lg transition-all text-center flex-1">📞 Call</a>
+                        <button onclick="deleteContact('${c.id}')" class="text-xs font-semibold bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white px-3 py-2 rounded-lg transition-all">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- DELETE CONTACT ---
+        window.deleteContact = async (id) => {
+            if(!confirm("Are you sure you want to delete this contact? This cannot be undone.")) return;
+            
+            await supabase.from('contacts').delete().eq('id', id);
+            loadContacts();
+        };
+
+        // --- ADD CONTACT FORM ---
+        document.getElementById('contactForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Saving...';
+            submitBtn.disabled = true;
+
+            const name = document.getElementById('cName').value.trim();
+            const phone = document.getElementById('cPhone').value.trim();
+            const company = document.getElementById('cCompany').value.trim();
+            const tag = document.getElementById('cTag').value;
+
+            const { error } = await supabase.from('contacts').insert({ 
+                business_id: business.id, 
+                name, 
+                phone, 
+                company, 
+                tag 
+            });
+
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+
+            if (error) {
+                alert(`Error saving contact: ${error.message}`);
+                return;
+            }
+
+            document.getElementById('contactModal').classList.add('hidden');
+            document.getElementById('contactForm').reset();
+            loadContacts();
+        });
+
+        // --- LOGOUT ---
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.href = 'login.html';
+        });
+
+        // --- INIT ---
+        loadContacts();
+    </script>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings — BusyDail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+        .animate-pulse-slow { animation: pulse-slow 8s ease-in-out infinite; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        
+        /* Custom Toggle Switch CSS */
+        input:checked ~ .toggle-bg { background-color: #2563eb; border-color: #3b82f6; }
+        input:checked ~ .toggle-dot { transform: translateX(100%); background-color: #ffffff; }
+    </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen relative overflow-x-hidden font-sans flex">
+
+    <div class="fixed top-[-10%] left-[20%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse-slow pointer-events-none z-0"></div>
+    <div class="fixed bottom-[-10%] right-[-5%] w-[30%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse-slow pointer-events-none z-0" style="animation-delay: 2s;"></div>
+
+    <div class="md:hidden fixed top-0 left-0 w-full bg-gray-900/80 backdrop-blur-xl border-b border-white/10 p-4 flex items-center justify-between z-40">
+        <a href="index.html"><img src="bdlogo.png" alt="BusyDail" class="h-8 w-auto"></a>
+        <button id="mobileMenuBtn" class="text-white hover:text-blue-400 transition">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+    </div>
+
+    <div id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-gray-900/90 backdrop-blur-2xl border-r border-white/10 flex flex-col z-50 transition-transform duration-300 transform -translate-x-full md:translate-x-0">
+        <button id="closeMenuBtn" class="md:hidden absolute top-5 right-5 text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+        <div class="p-6 pt-8 md:pt-6 border-b border-white/10 flex flex-col">
+            <a href="index.html" class="flex items-center gap-3 group mb-1">
+                <img src="bdlogo.png" alt="BusyDail" class="h-8 w-auto transition-transform group-hover:scale-110 group-hover:rotate-3">
+                <img src="bdtext.png" alt="BusyDail" class="h-5 w-auto opacity-90 group-hover:opacity-100 transition-opacity">
+            </a>
+            <div id="userEmail" class="text-xs text-blue-400 mt-2 truncate bg-blue-500/10 px-2 py-1 rounded-md border border-blue-500/20 max-w-fit"></div>
+        </div>
+        <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
+            <a href="dashboard.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📊 Dashboard</a>
+            <a href="agents.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">🤖 Agents</a>
+            <a href="groups.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">👥 Agent Groups</a>
+            <a href="campaigns.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📢 Campaigns</a>
+            <a href="contacts.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">👥 Contacts</a>
+            <a href="calls.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📞 Call History</a>
+            <a href="make-call.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📲 Make a Call</a>
+            <a href="billing.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">💳 Billing</a>
+            <a href="settings.html" class="block px-4 py-3 rounded-xl text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium shadow-[0_0_15px_rgba(37,99,235,0.3)]">⚙️ Settings</a>
+        </nav>
+        <div class="p-5 border-t border-white/10 bg-black/20">
+            <button id="logoutBtn" class="w-full py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-xl transition-all font-medium">Logout</button>
+        </div>
+    </div>
+
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
+
+    <div class="md:ml-64 p-5 sm:p-8 pt-24 md:pt-8 flex-1 relative z-10 w-full min-h-screen">
+        <div class="mb-8 md:mb-10">
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Workspace Settings</h1>
+            <p class="text-gray-400 mt-2 text-sm sm:text-base">Configure your telephony provider and API integrations.</p>
+        </div>
+
+        <div id="statusMsg" class="hidden max-w-2xl mb-6 p-4 rounded-xl text-sm font-medium border backdrop-blur-md z-20 relative"></div>
+
+        <!-- Twilio & Timezone Module -->
+        <div class="max-w-2xl bg-gray-900/50 backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-8 shadow-xl mb-8 relative z-10">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 font-bold text-xl">T</div>
+                <div>
+                    <h2 class="font-bold text-lg">General Configurations</h2>
+                    <p class="text-xs text-gray-400">Provide your Twilio credentials and global workspace timezones.</p>
+                </div>
+            </div>
+
+            <form id="twilioForm" class="space-y-5">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1.5 ml-1">Universal Workspace Timezone</label>
+                    <select id="workspaceTimezone" required class="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500 text-sm transition-all cursor-pointer">
+                        <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                        <option value="America/New_York">America/New_York (EST)</option>
+                        <option value="America/Los_Angeles">America/Los_Angeles (PST)</option>
+                        <option value="Europe/London">Europe/London (GMT)</option>
+                        <option value="Australia/Sydney">Australia/Sydney (AEST)</option>
+                        <option value="UTC">UTC (Global)</option>
+                    </select>
+                </div>
+                <hr class="border-white/5 my-4">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1.5 ml-1">Account SID</label>
+                    <input type="text" id="twSid" required placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" class="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 font-mono text-sm transition-all" />
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1.5 ml-1">Auth Token</label>
+                    <input type="password" id="twToken" required placeholder="••••••••••••••••••••••••••••••••" class="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 font-mono text-sm transition-all" />
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1.5 ml-1">Twilio Phone Number</label>
+                    <input type="text" id="twNumber" required placeholder="+1234567890" class="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 font-mono text-sm transition-all" />
+                    <p class="text-xs text-gray-500 mt-2 ml-1">You must configure this number's webhook in Twilio to point to: <br><code class="text-blue-400">https://ai-telecaller-f47c.onrender.com/incoming-call</code></p>
+                </div>
+                
+                <button type="submit" id="saveBtn" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.3)] rounded-xl font-bold transition-all duration-300">
+                    Save Configurations
+                </button>
+            </form>
+        </div>
+
+        <!-- Dynamic Next-Step Automation Module -->
+        <div class="max-w-2xl bg-gray-900/50 backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-8 shadow-xl mb-8 relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-8 opacity-5 text-8xl transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500">⚡</div>
+            <div class="mb-6 relative z-10">
+                <h2 class="font-bold text-lg flex items-center gap-2">⚡ Next-Step SMS Automation</h2>
+                <p class="text-xs text-gray-400 mt-0.5">Instantly text users when the AI detects high interest or triggers an action.</p>
+            </div>
+            
+            <div class="space-y-5 relative z-10">
+                <!-- Toggle -->
+                <label class="flex items-center cursor-pointer mb-2 w-max">
+                    <div class="relative">
+                        <input type="checkbox" id="smsAutoEnable" class="sr-only">
+                        <div class="toggle-bg block bg-gray-800 w-12 h-7 rounded-full border border-white/10 transition-colors duration-300"></div>
+                        <div class="toggle-dot absolute left-1 top-1 bg-gray-400 w-5 h-5 rounded-full transition transform duration-300"></div>
+                    </div>
+                    <div class="ml-4 text-sm font-bold text-gray-200 uppercase tracking-wide">Enable Automated SMS Follow-ups</div>
+                </label>
+
+                <!-- Text Message -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 ml-1">Custom SMS Message Body</label>
+                    <textarea id="smsAutoText" rows="3" placeholder="Hi! It was great speaking with you. Here is the link to book your appointment: https://link.com" class="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500 transition-all font-mono placeholder-gray-600"></textarea>
+                </div>
+
+                <!-- Media URL -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 ml-1">Media Attachment URL (Optional MMS)</label>
+                    <input type="url" id="smsAutoMediaUrl" placeholder="https://yourwebsite.com/brochure.pdf" class="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 font-mono text-sm transition-all" />
+                    <p class="text-xs text-gray-500 mt-2 ml-1">Must be a direct, public link to an image, PDF, or media file supported by Twilio MMS.</p>
+                </div>
+
+                <button id="saveSmsAutoBtn" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.3)] rounded-xl font-bold transition-all duration-300">
+                    Save Automation Settings
+                </button>
+            </div>
+        </div>
+
+        <!-- Live Call Tasks Automation Module -->
+        <div class="max-w-2xl bg-gray-900/50 backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-8 opacity-5 text-8xl transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500">📝</div>
+            <div class="mb-5 relative z-10">
+                <h2 class="font-bold text-lg flex items-center gap-2">📝 Live Call Tasks Automation</h2>
+                <p class="text-xs text-gray-400 mt-0.5">Instruct the AI to extract target criteria parameters out of the live connection stream.</p>
+            </div>
+            
+            <div class="space-y-4 relative z-10">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 ml-1">Live Information Extraction Prompt Instructions</label>
+                    <textarea id="liveCallTasksPrompt" rows="4" 
+                        placeholder="e.g., Make sure to collect the email address from the user. Once they give it to you, confirm it back to them to make sure it's correct." 
+                        class="w-full px-4 py-3.5 bg-black/20 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500 transition-all font-mono placeholder-gray-600"></textarea>
+                </div>
+                <button id="saveTasksBtn" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.3)] rounded-xl font-bold transition-all duration-300">
+                    Save Task Automation Rules
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase, getUser, getBusiness } from './supabase.js';
+
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const toggleSidebar = () => { sidebar.classList.toggle('-translate-x-full'); overlay.classList.toggle('hidden'); };
+        document.getElementById('mobileMenuBtn')?.addEventListener('click', toggleSidebar);
+        document.getElementById('closeMenuBtn')?.addEventListener('click', toggleSidebar);
+        overlay?.addEventListener('click', toggleSidebar);
+
+        const user = await getUser();
+        if (!user) window.location.href = 'login.html';
+        const business = await getBusiness(user.email);
+        if (!business) window.location.href = 'onboarding.html';
+
+        document.getElementById('userEmail').textContent = user.email;
+
+        // Load existing configurations
+        if (business.timezone) document.getElementById('workspaceTimezone').value = business.timezone;
+        if (business.twilio_account_sid) document.getElementById('twSid').value = business.twilio_account_sid;
+        if (business.twilio_auth_token) document.getElementById('twToken').value = business.twilio_auth_token;
+        if (business.twilio_number) document.getElementById('twNumber').value = business.twilio_number;
+        if (business.live_call_tasks_prompt) document.getElementById('liveCallTasksPrompt').value = business.live_call_tasks_prompt;
+
+        // Load new SMS Automation configurations
+        if (business.sms_automation_enabled !== undefined) document.getElementById('smsAutoEnable').checked = business.sms_automation_enabled;
+        if (business.sms_automation_text) document.getElementById('smsAutoText').value = business.sms_automation_text;
+        if (business.sms_automation_media_url) document.getElementById('smsAutoMediaUrl').value = business.sms_automation_media_url;
+
+        const showStatus = (msg, type) => {
+            const el = document.getElementById('statusMsg');
+            el.textContent = msg;
+            el.className = `mb-6 p-4 rounded-xl text-sm font-medium border backdrop-blur-md z-20 relative ${type === 'success' ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`;
+            el.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => el.classList.add('hidden'), 5000);
+        };
+
+        // Save Twilio Details
+        document.getElementById('twilioForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            const tz = document.getElementById('workspaceTimezone').value;
+            const sid = document.getElementById('twSid').value.trim();
+            const token = document.getElementById('twToken').value.trim();
+            const number = document.getElementById('twNumber').value.trim();
+
+            const { error } = await supabase
+                .from('businesses')
+                .update({
+                    timezone: tz,
+                    twilio_account_sid: sid,
+                    twilio_auth_token: token,
+                    twilio_number: number
+                })
+                .eq('id', business.id);
+
+            btn.disabled = false;
+            btn.textContent = 'Save Configurations';
+
+            if (error) {
+                showStatus(`Error saving configuration: ${error.message}`, 'error');
+            } else {
+                showStatus('Configurations updated successfully.', 'success');
+            }
+        });
+
+        // Save SMS Automation Details
+        document.getElementById('saveSmsAutoBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('saveSmsAutoBtn');
+            const isEnabled = document.getElementById('smsAutoEnable').checked;
+            const textBody = document.getElementById('smsAutoText').value.trim();
+            const mediaUrl = document.getElementById('smsAutoMediaUrl').value.trim();
+            
+            btn.disabled = true;
+            btn.textContent = 'Saving Settings...';
+            
+            const { error } = await supabase
+                .from('businesses')
+                .update({ 
+                    sms_automation_enabled: isEnabled,
+                    sms_automation_text: textBody || null,
+                    sms_automation_media_url: mediaUrl || null
+                })
+                .eq('id', business.id);
+                
+            btn.disabled = false;
+            btn.textContent = 'Save Automation Settings';
+
+            if (error) {
+                showStatus(`Error saving automation settings: ${error.message}`, 'error');
+            } else {
+                showStatus('SMS Automation settings updated successfully!', 'success');
+            }
+        });
+
+        // Save Live Tasks
+        document.getElementById('saveTasksBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('saveTasksBtn');
+            const customPrompt = document.getElementById('liveCallTasksPrompt').value.trim();
+            
+            btn.disabled = true;
+            btn.textContent = 'Saving Rules...';
+            
+            const { error } = await supabase
+                .from('businesses')
+                .update({ live_call_tasks_prompt: customPrompt })
+                .eq('id', business.id);
+                
+            btn.disabled = false;
+            btn.textContent = 'Save Task Automation Rules';
+
+            if (error) {
+                showStatus(`Error saving task rules: ${error.message}`, 'error');
+            } else {
+                showStatus('Live Call Task behavior matrices saved successfully!', 'success');
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>

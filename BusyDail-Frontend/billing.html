@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing — BusyDail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        /* Background Pulse */
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+        .animate-pulse-slow { animation: pulse-slow 8s ease-in-out infinite; }
+        
+        /* Modal Animations */
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop-in { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+        .animate-shake { animation: shake 0.5s ease-in-out; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+    </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen relative overflow-x-hidden font-sans flex">
+
+    <div class="fixed top-[-10%] left-[20%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse-slow pointer-events-none z-0"></div>
+    <div class="fixed bottom-[-10%] right-[-5%] w-[30%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse-slow pointer-events-none z-0" style="animation-delay: 2s;"></div>
+
+    <div id="processingOverlay" class="fixed inset-0 z-[100] hidden flex-col items-center justify-center bg-black/90 backdrop-blur-md transition-opacity duration-300">
+        <div class="bg-gray-900 border border-blue-500/30 p-10 rounded-3xl shadow-[0_0_50px_rgba(59,130,246,0.2)] flex flex-col items-center text-center max-w-sm animate-pop-in">
+            <div class="text-6xl mb-6 animate-pulse">⏳</div>
+            <h2 class="text-2xl font-bold text-white mb-2">Verifying Payment...</h2>
+            <p class="text-gray-400 text-sm">Please do not close or refresh this window.</p>
+        </div>
+    </div>
+
+    <div id="successOverlay" class="fixed inset-0 z-[100] hidden flex-col items-center justify-center bg-black/90 backdrop-blur-md transition-opacity duration-300">
+        <div class="bg-gray-900 border border-green-500/30 p-10 rounded-3xl shadow-[0_0_50px_rgba(34,197,94,0.2)] flex flex-col items-center text-center max-w-sm animate-pop-in">
+            <div class="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mb-6 border border-green-500/50 relative">
+                <span class="text-5xl absolute animate-pop-in" style="animation-delay: 0.2s;">✅</span>
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-2">Payment Successful!</h2>
+            <p id="successMessage" class="text-gray-400 text-sm">Your credits have been added. Refreshing dashboard...</p>
+        </div>
+    </div>
+
+    <div id="errorOverlay" class="fixed inset-0 z-[100] hidden flex-col items-center justify-center bg-black/90 backdrop-blur-md transition-opacity duration-300">
+        <div class="bg-gray-900 border border-red-500/30 p-10 rounded-3xl shadow-[0_0_50px_rgba(239,68,68,0.2)] flex flex-col items-center text-center max-w-sm animate-pop-in">
+            <div class="w-24 h-24 bg-red-500/20 rounded-full flex items-center justify-center mb-6 border border-red-500/50 animate-shake">
+                <span class="text-5xl">❌</span>
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-2">Payment Failed</h2>
+            <p id="errorMessage" class="text-gray-400 text-sm">Something went wrong. Please try again.</p>
+            <button onclick="closeErrorModal()" class="mt-8 px-8 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-bold transition">Close</button>
+        </div>
+    </div>
+
+    <div class="md:hidden fixed top-0 left-0 w-full bg-gray-900/80 backdrop-blur-xl border-b border-white/10 p-4 flex items-center justify-between z-40 shadow-lg">
+        <a href="index.html" class="flex items-center gap-2">
+            <img src="bdlogo.png" alt="BusyDail Icon" class="h-8 w-auto">
+        </a>
+        <button id="mobileMenuBtn" class="text-white hover:text-blue-400 focus:outline-none transition">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+    </div>
+
+    <div id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-gray-900/90 backdrop-blur-2xl border-r border-white/10 flex flex-col z-50 transition-transform duration-300 transform -translate-x-full md:translate-x-0 shadow-[20px_0_50px_rgba(0,0,0,0.3)] md:shadow-none">
+        
+        <button id="closeMenuBtn" class="md:hidden absolute top-5 right-5 text-gray-400 hover:text-white transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+
+        <div class="p-6 pt-8 md:pt-6 border-b border-white/10 flex flex-col">
+            <a href="index.html" class="flex items-center gap-3 group mb-1">
+                <img src="bdlogo.png" alt="BusyDail Icon" class="h-8 w-auto transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                <img src="bdtext.png" alt="BusyDail" class="h-5 w-auto opacity-90 group-hover:opacity-100 transition-opacity">
+            </a>
+            <div id="userEmail" class="text-xs text-blue-400 mt-2 truncate bg-blue-500/10 px-2 py-1 rounded-md inline-block max-w-fit border border-blue-500/20"></div>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
+    <a href="dashboard.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📊 Dashboard</a>
+    <a href="agents.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">🤖 Agents</a>
+    <a href="groups.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">👥 Agent Groups</a>
+    <a href="contacts.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">👥 Contacts</a>
+    <a href="calls.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📞 Call History</a>
+    <a href="make-call.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">📲 Make a Call</a>
+    <a href="billing.html" class="block px-4 py-3 rounded-xl text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium shadow-[0_0_15px_rgba(37,99,235,0.3)]">💳 Billing</a>
+    <a href="settings.html" class="block px-4 py-3 rounded-xl text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-all">⚙️ Settings</a>
+</nav>
+
+        <div class="p-5 border-t border-white/10 bg-black/20">
+            <button id="logoutBtn" class="w-full py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-xl transition-all font-medium">Logout</button>
+        </div>
+    </div>
+
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
+
+    <div class="md:ml-64 p-5 sm:p-8 pt-24 md:pt-8 flex-1 relative z-10 w-full min-h-screen">
+        <div class="mb-8 md:mb-10 max-w-3xl">
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Billing & Credits</h1>
+            <p class="text-gray-400 mt-2 text-sm sm:text-base">Top up your account to continue running AI campaigns.</p>
+        </div>
+
+        <div class="bg-gray-900/50 backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-8 mb-10 shadow-xl max-w-md border-blue-500/20">
+            <h2 class="text-gray-400 text-sm font-medium uppercase tracking-wider">Current Balance</h2>
+            <p id="currentBalance" class="text-4xl sm:text-5xl font-bold text-blue-400 mt-2">Loading...</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl">
+            <div class="bg-gray-900/40 border border-white/10 p-6 sm:p-8 rounded-3xl hover:border-white/20 transition duration-300 flex flex-col h-full group">
+                <h3 class="text-xl font-bold text-white group-hover:text-blue-400 transition">Starter Pack</h3>
+                <p class="text-gray-400 mt-2 text-sm flex-grow">100 AI Calling Credits</p>
+                <div class="my-6 h-px w-full bg-white/10"></div>
+                <p class="text-3xl font-bold text-white mb-6">₹99</p>
+                <button onclick="pay(99, 100)" class="w-full py-3.5 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-bold transition shadow-inner border border-white/5">Buy Starter</button>
+            </div>
+
+            <div class="bg-gradient-to-b from-blue-900/30 to-gray-900/40 border border-blue-500/40 hover:border-blue-500/70 p-6 sm:p-8 rounded-3xl relative shadow-[0_0_30px_rgba(37,99,235,0.1)] hover:shadow-[0_0_40px_rgba(37,99,235,0.2)] transform md:-translate-y-2 flex flex-col h-full transition duration-300">
+                <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-blue-600 text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-widest text-white shadow-lg whitespace-nowrap">Most Popular</div>
+                <h3 class="text-xl font-bold text-white">Growth Pack</h3>
+                <p class="text-blue-200 mt-2 text-sm flex-grow">600 AI Calling Credits</p>
+                <div class="my-6 h-px w-full bg-blue-500/20"></div>
+                <p class="text-3xl font-bold text-white mb-6">₹499</p>
+                <button onclick="pay(499, 600)" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] rounded-xl font-bold transition transform hover:-translate-y-0.5">Buy Growth</button>
+            </div>
+
+            <div class="bg-gray-900/40 border border-white/10 p-6 sm:p-8 rounded-3xl hover:border-white/20 transition duration-300 flex flex-col h-full group">
+                <h3 class="text-xl font-bold text-white group-hover:text-purple-400 transition">Pro Pack</h3>
+                <p class="text-gray-400 mt-2 text-sm flex-grow">1500 AI Calling Credits</p>
+                <div class="my-6 h-px w-full bg-white/10"></div>
+                <p class="text-3xl font-bold text-white mb-6">₹999</p>
+                <button onclick="pay(999, 1500)" class="w-full py-3.5 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-bold transition shadow-inner border border-white/5">Buy Pro</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase, getUser, getBusiness } from './supabase.js';
+
+        // Modal Logic
+        window.closeErrorModal = () => {
+            document.getElementById('errorOverlay').classList.replace('flex', 'hidden');
+        };
+
+        const showProcessing = () => {
+            document.getElementById('processingOverlay').classList.replace('hidden', 'flex');
+        };
+        const hideProcessing = () => {
+            document.getElementById('processingOverlay').classList.replace('flex', 'hidden');
+        };
+
+        const showSuccess = (credits) => {
+            document.getElementById('successMessage').textContent = `${credits} credits have been successfully added to your account!`;
+            document.getElementById('successOverlay').classList.replace('hidden', 'flex');
+        };
+
+        const showError = (message) => {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorOverlay').classList.replace('hidden', 'flex');
+        };
+
+        // Sidebar Logic
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const closeMenuBtn = document.getElementById('closeMenuBtn');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        if(mobileMenuBtn) mobileMenuBtn.addEventListener('click', toggleSidebar);
+        if(closeMenuBtn) closeMenuBtn.addEventListener('click', toggleSidebar);
+        if(overlay) overlay.addEventListener('click', toggleSidebar);
+
+        // Auth & Data
+        const user = await getUser();
+        if (!user) window.location.href = 'login.html';
+
+        const business = await getBusiness(user.email);
+        if (!business) window.location.href = 'onboarding.html';
+
+        document.getElementById('userEmail').textContent = user.email;
+
+        // Fetch precise credit balance from DB bypassing cache
+        const { data: freshBusiness } = await supabase
+            .from('businesses')
+            .select('credits_balance')
+            .eq('id', business.id)
+            .single();
+
+        const currentCredits = freshBusiness ? (freshBusiness.credits_balance || 0) : 0;
+        document.getElementById('currentBalance').textContent = `${currentCredits} Credits`;
+
+        // Razorpay Integration
+        window.pay = async (amount, credits) => {
+            const options = {
+                "key": "rzp_test_SugBBEYCuawuz4", // <--- PASTE YOUR RZP TEST KEY ID HERE
+                "amount": amount * 100,
+                "currency": "INR",
+                "name": "BusyDail AI",
+                "description": `${credits} Credits Top-up`,
+                "handler": async function (response) {
+                    
+                    showProcessing();
+
+                    try {
+                        // Send payment ID to your secure server for verification
+                        const serverRes = await fetch('https://ai-telecaller-f47c.onrender.com/verify-payment', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                paymentId: response.razorpay_payment_id,
+                                businessId: business.id,
+                                creditsToAdd: credits
+                            })
+                        });
+
+                        const serverData = await serverRes.json();
+
+                        hideProcessing();
+
+                        if (serverData.success) {
+                            showSuccess(credits);
+                            // Reload page after 3 seconds to show new balance
+                            setTimeout(() => { window.location.reload(); }, 3000);
+                        } else {
+                            showError(serverData.error || "Server failed to verify the payment.");
+                        }
+                    } catch (err) {
+                        hideProcessing();
+                        showError("Network error while verifying payment. Please contact support.");
+                        console.error(err);
+                    }
+                },
+                "prefill": {
+                    "email": user.email,
+                    "contact": business.twilio_number || "" 
+                },
+                "theme": {
+                    "color": "#2563eb"
+                }
+            };
+            
+            const rzp = new Razorpay(options);
+            
+            rzp.on('payment.failed', function (response){
+                showError(response.error.description || "The payment was declined or cancelled.");
+            });
+
+            rzp.open();
+        };
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>
